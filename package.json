@@ -1,0 +1,36 @@
+{
+  "name": "r-list-model",
+  "version": "0.0.1",
+  "description": "R-SoCs list model library",
+  "scripts": {
+    "build": "rollup -c",
+    "test": "jest"
+  },
+  "author": "Fuhang Wang <3.riverside.swe@gmail.com>",
+  "license": "MIT",
+  "repository": "https://github.com/huitou/r-obj-model",
+  "dependencies": {
+    "r-socs-core": "^0.0.2",
+    "react": "^16.8.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/plugin-proposal-class-properties": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "@babel/preset-react": "^7.0.0",
+    "babel-jest": "^26.1.0",
+    "enzyme": "^3.9.0",
+    "enzyme-adapter-react-16": "^1.10.0",
+    "jest": "^26.1.0",
+    "prop-types": "^15.7.2",
+    "react-dom": "^16.8.4",
+    "react-test-renderer": "^16.8.4",
+    "rollup": "^1.31.1",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-replace": "^2.2.0",
+    "rollup-plugin-terser": "^5.2.0"
+  },
+  "main": "lib/r-list-model.js",
+  "module": "es/r-list-model.js"
+}
