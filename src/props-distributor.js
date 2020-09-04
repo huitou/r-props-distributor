@@ -19,7 +19,7 @@ export const propsDistributor = (name, mapper = unitMapper) => (WrappedComponent
 
     // Using React Context provider:
     return (
-        <MyContext.Provider value={...props}>
+        <MyContext.Provider value={{ ...props }}>
             <WrappedComponent {...props} />
         </MyContext.Provider>
     );

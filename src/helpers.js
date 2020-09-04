@@ -8,32 +8,20 @@
 
 export const unitMapper = (props) => ({ ...props });
 
-export const contextRegistryName = '__R_SOCS_PROPS_DISTRIBUTOR_CONTEXTS__';
-
-export const getContextRegistry = () => {
-    if (!window[contextRegistryName]) {
-        window[contextRegistryName] = {};
-    }
-
-    return window[contextRegistryName];
-};
+const contextRegistry = {};
 
 export const registerContext = (name, Context) => {
-    const registry = getContextRegistry();
-
-    if (registry[name]) {
-        throw new Error(`${contextRegistryName} registry has already a React Context registered with the name ${name}`); 
+    if (contextRegistry[name]) {
+        throw new Error(`Context registry has already a React Context registered with the name ${name}`); 
     }
 
-    registry[name] = Context;
+    contextRegistry[name] = Context;
 };
 
 export const getContext = (name) => {
-    const registry = getContextRegistry();
-
-    if (!registry[name]) {
-        throw new Error(`${contextRegistryName} registry has not a React Context registered with the name ${name}`); 
+    if (!contextRegistry[name]) {
+        throw new Error(`Context registry has not a React Context registered with the name ${name}`); 
     }
 
-    return registry[name];
+    return contextRegistry[name];
 };

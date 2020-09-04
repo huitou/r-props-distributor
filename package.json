@@ -28,7 +28,7 @@
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-replace": "^2.2.0",
-    "rollup-plugin-terser": "^5.2.0"
+    "rollup-plugin-terser": "^7.0.2"
   },
   "main": "lib/r-props-distributor.js",
   "module": "es/r-props-distributor.js"
