@@ -5,8 +5,11 @@
 
     Licensed under the MIT License. See LICENSE file in the project root for full license information.
 */
+import React from "react";
 
 const contextRegistry = {};
+
+export const getContextRegistry = () => ({ ...contextRegistry });
 
 const registerContext = (name, Context) => {
     if (contextRegistry[name]) {
@@ -34,16 +37,20 @@ class Distributor extends React.Component {
     constructor(props) {
         super(props);
 
-        MyContext = React.createContext({});
-        registerContext(this.props.name, MyContext);
+        this.MyContext = React.createContext({});
+        try {
+            registerContext(this.props._name, this.MyContext);
+        } catch (e) {
+            throw e;
+        };
     }
 
     componentWillUnmount() {
-        deregisterContext(this.props.name);
+        deregisterContext(this.props._name);
     }
 
     render() {
-        const { name, ...rest } = this.props;
+        const { _name, ...rest } = this.props;
         const MyContext = this.MyContext;
 
         return (
