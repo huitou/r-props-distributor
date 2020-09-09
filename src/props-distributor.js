@@ -8,19 +8,12 @@
 
 import React from 'react';
 
-import { unitMapper, registerContext } from './helpers';
+import Distributor, { unitMapper } from './helpers';
 
-export const propsDistributor = (name, mapper = unitMapper) => (WrappedComponent) => {
-    // Create React Context:
-    const MyContext = React.createContext({});
-
-    // Register it in global registry:
-    registerContext(name, MyContext);
-
-    // Using React Context provider:
+export const propsDistributor = (name, mapper = unitMapper) => (WrappedComponent) => (props) => {
     return (
-        <MyContext.Provider value={{ ...props }}>
-            <WrappedComponent {...props} />
-        </MyContext.Provider>
+        <Distributor name={name}>
+            <WrappedComponent {...mapper(props)} />
+        </Distributor>
     );
 };

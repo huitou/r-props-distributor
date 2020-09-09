@@ -8,12 +8,12 @@
 
 import { unitMapper, getContext } from './helpers';
 
-export const propsReceiver = (name, mapper = unitMapper) => (WrappedComponent) => {
+export const propsReceiver = (name, mapper = unitMapper) => (WrappedComponent) => (props) => {
     const MyContext = getContext(name);
 
     return (
         <MyContext.Consumer>
-           {props => (<WrappedComponent {...props} />)}
+           {contextProps => (<WrappedComponent { ...props } { ...mapper(contextProps) } />)}
         </MyContext.Consumer>
     );
 };
