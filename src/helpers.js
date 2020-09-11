@@ -50,7 +50,7 @@ class Distributor extends React.Component {
     }
 
     render() {
-        const { _name, ...rest } = this.props;
+        const { _name, children, ...rest } = this.props;
         const MyContext = this.MyContext;
 
         return (
