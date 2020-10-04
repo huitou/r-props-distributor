@@ -6,9 +6,11 @@
     Licensed under the MIT License. See LICENSE file in the project root for full license information.
 */
 
-import { propsDistributor, propsReceiver } from './props-distributor';
+import { propsHoist } from './hoist';
+import { propsRegister, propsConnect } from './distributor';
 
 export {
-    propsDistributor,
-    propsReceiver,
+    propsHoist,
+    propsRegister,
+    propsConnect,
 };
