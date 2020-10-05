@@ -18,7 +18,14 @@ const namedPropsValue = { someName: 'someValue' };
 const namedPropsValueUpdated = { someOtherName: 'someOtherValue' };
 const ownProps = { whatever: {} };
 
-const WrappedComponent = () => (<div />);
+const DescendantComponent = () => (<div />);
+const RegisteredDescendantComponent = hoistRegister(HOIST_NAME)(DescendantComponent);
+
+const WrappedComponent = () => (
+	<div>
+		<RegisteredDescendantComponent {...ownProps} />
+	</div>
+);
 const HoistPointComponent = propsHoist(HOIST_NAME)(WrappedComponent);
 
 describe("propsHoist", () => {
@@ -65,16 +72,16 @@ describe("propsHoist", () => {
 
 		const valueRefresher = enzymeWrapper.find('HoistDistributor').props().hoistHandles.accommodateProps(PROPS_NAME, namedPropsValue);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValue } })
-		console.log(enzymeWrapper.debug());
+		// console.log(enzymeWrapper.debug());
 
 		valueRefresher(namedPropsValueUpdated);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated } })
-		console.log(enzymeWrapper.debug());
+		// console.log(enzymeWrapper.debug());
 
 		enzymeWrapper.find('HoistDistributor').props().hoistHandles.removeProps(PROPS_NAME);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: undefined } })
+		// console.log(enzymeWrapper.debug());
 
-		console.log(enzymeWrapper.debug());
 		PropsRegistry.deregisterProps(PROPS_NAME);
 		enzymeWrapper.unmount();
 	});
@@ -87,11 +94,35 @@ describe("propsHoist", () => {
 		enzymeWrapper.unmount();
 	});
 
-	// it("....", () => {
-	// 	expect(enzymeWrapper.find('HoistManager').length).toBe(1);
-	// 	expect(enzymeWrapper.find('HoistDistributor').length).toBe(1);
-	// 	expect(enzymeWrapper.find('PropsDistributors').length).toBe(1);
-	// 	expect(enzymeWrapper.find('PropsDistributor').length).toBe(0);
-	// 	enzymeWrapper.unmount();
-	// });
+	it("....", () => {
+		expect(enzymeWrapper.find(WrappedComponent).length).toBe(1);
+		expect(enzymeWrapper.find('HoistManager').length).toBe(1);
+		expect(enzymeWrapper.find('HoistDistributor').length).toBe(1);
+		expect(enzymeWrapper.find('PropsDistributors').length).toBe(1);
+		expect(enzymeWrapper.find('PropsDistributor').length).toBe(0);
+		enzymeWrapper.unmount();
+	});
+});
+
+describe("hoistRegister", () => {
+	let enzymeWrapper;
+
+	beforeEach(() => {
+		enzymeWrapper = mount(<HoistPointComponent {...ownProps} />);
+	});
+	afterEach(() => {
+
+	});
+
+	it("decorates a wrapped component injecting hoistHandles.", () => {
+		const hoistHandles = enzymeWrapper.find('HoistDistributor').props().hoistHandles;
+		expect(enzymeWrapper.find(DescendantComponent).props()).toEqual({ ...ownProps, ...hoistHandles });
+		enzymeWrapper.unmount();
+	});
+
+	it("....", () => {
+		expect(enzymeWrapper.find(DescendantComponent).length).toBe(1);
+		// expect(enzymeWrapper.find('RegisteredDescendantComponent').length).toBe(1);
+		enzymeWrapper.unmount();
+	});
 });

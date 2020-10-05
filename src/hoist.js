@@ -13,7 +13,9 @@ import PropsRegistry from './registry-props';
 // Distribute props through a named Props Context:
 const PropsDistributor = (props) => {
     const { propsEntry, children } = props;
+    // console.log(propsEntry);
     const PropsContext = PropsRegistry.getPropsContext(propsEntry[0]);
+    // console.log(PropsContext);
 
     return (
         <PropsContext.Provider value={propsEntry[1]}>
@@ -25,6 +27,7 @@ const PropsDistributor = (props) => {
 // Coordinate all PropsDistributors with layered srtucture:
 const PropsDistributors = (props) => {
     const { accommodatedProps, children } = props;
+    // console.log(Object.entries(accommodatedProps).filter(entry => entry[1]));
     const nodes = Object.entries(accommodatedProps).filter(entry => entry[1]).reduce((acc, entry) => (
         <PropsDistributor propsEntry={entry}>{acc}</PropsDistributor>
     ), <Fragment>{children}</Fragment>);
