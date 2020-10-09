@@ -14,6 +14,9 @@ const registerHoist = (name, Context) => {
         throw new Error(`Context registry has already a React Context registered with the name ${name}`); 
     }
 
+    const [first, ...rest] = name;
+    const displayName = [ first.toUpperCase(), ...rest ].join('');
+    Context.displayName = displayName;
     hoistRegistry[name] = Context;
 };
 

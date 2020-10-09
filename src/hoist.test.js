@@ -14,16 +14,44 @@ import { propsHoist, hoistRegister } from './hoist';
 
 const HOIST_NAME = 'myHoist';
 const PROPS_NAME = 'myProps';
+const PROPS_NAME_2 = 'myProps_2';
 const namedPropsValue = { someName: 'someValue' };
+const namedPropsValue_2 = { someName_2: 'someValue_2' };
 const namedPropsValueUpdated = { someOtherName: 'someOtherValue' };
-const ownProps = { whatever: {} };
+const namedPropsValueUpdated_2 = { someOtherName_2: 'someOtherValue_2' };
+const ownProps = { whatever: "whatever" };
+
+const ConsumerComponent = () => (<div />);
+const ConnectingConsumerComponent = (props) => {
+	const MyPropsContext = PropsRegistry.getPropsRegistry()[PROPS_NAME];
+	const MyPropsContext_2 = PropsRegistry.getPropsRegistry()[PROPS_NAME_2];
+
+	const MyWrapped = (myProps) => MyPropsContext
+		? (
+			<MyPropsContext.Consumer>
+				{(contextProps) => (<ConsumerComponent {...myProps} {...contextProps} />)}
+			</MyPropsContext.Consumer>
+		)
+		: (<ConsumerComponent {...props} />);
+
+	const MyWrapped_2 = (myProps) => MyPropsContext_2
+		? (
+			<MyPropsContext_2.Consumer>
+				{(contextProps) => (<MyWrapped {...myProps} {...contextProps} />)}
+			</MyPropsContext_2.Consumer>
+		)
+		: (<MyWrapped />);
+
+	return <MyWrapped_2 {...props} />;
+};
 
 const DescendantComponent = () => (<div />);
 const RegisteredDescendantComponent = hoistRegister(HOIST_NAME)(DescendantComponent);
 
-const WrappedComponent = () => (
+const WrappedComponent = (props) => (
 	<div>
-		<RegisteredDescendantComponent {...ownProps} />
+		<RegisteredDescendantComponent {...props} />
+		<div><ConnectingConsumerComponent {...props} /></div>
 	</div>
 );
 const HoistPointComponent = propsHoist(HOIST_NAME)(WrappedComponent);
@@ -67,22 +95,49 @@ describe("propsHoist", () => {
 		enzymeWrapper.unmount();
 	});
 
-	it("gives internal HoistDistributor hoistHandles which accomodates and removes named props.", () => {
+	it("gives internal HoistDistributor hoistHandles which accomodates and removes named props hence distributes accordingly.", () => {
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual(ownProps);
+
+		// The following lines are to simulate registering named props contexts.
 		PropsRegistry.registerProps(PROPS_NAME, React.createContext({}));
+		PropsRegistry.registerProps(PROPS_NAME_2, React.createContext({}));
 
 		const valueRefresher = enzymeWrapper.find('HoistDistributor').props().hoistHandles.accommodateProps(PROPS_NAME, namedPropsValue);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValue } })
-		// console.log(enzymeWrapper.debug());
+		enzymeWrapper.update();
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValue });
 
 		valueRefresher(namedPropsValueUpdated);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated } })
+		enzymeWrapper.update();
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated });
+
+		const valueRefresher_2 = enzymeWrapper.find('HoistDistributor').props().hoistHandles.accommodateProps(PROPS_NAME_2, namedPropsValue_2);
+		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated, [PROPS_NAME_2]: namedPropsValue_2 } })
+		enzymeWrapper.update();
 		// console.log(enzymeWrapper.debug());
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated, ...namedPropsValue_2 });
+
+		valueRefresher_2(namedPropsValueUpdated_2);
+		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated, [PROPS_NAME_2]: namedPropsValueUpdated_2 } })
+		enzymeWrapper.update();
+		// console.log(enzymeWrapper.debug());
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated, ... namedPropsValueUpdated_2 });
+
+		enzymeWrapper.find('HoistDistributor').props().hoistHandles.removeProps(PROPS_NAME_2);
+		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated } })
+		enzymeWrapper.update();
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated });
 
 		enzymeWrapper.find('HoistDistributor').props().hoistHandles.removeProps(PROPS_NAME);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: undefined } })
-		// console.log(enzymeWrapper.debug());
+		enzymeWrapper.update();
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual(ownProps);
 
+		// The following lines are to simulate deregistering named props contexts.
 		PropsRegistry.deregisterProps(PROPS_NAME);
+		PropsRegistry.deregisterProps(PROPS_NAME_2);
+
 		enzymeWrapper.unmount();
 	});
 
