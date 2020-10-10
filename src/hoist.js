@@ -13,13 +13,23 @@ import PropsRegistry from './registry-props';
 // Distribute props through a named Props Context:
 const PropsDistributor = (props) => {
     const { propsEntry, children } = props;
-    const PropsContext = PropsRegistry.getPropsContext(propsEntry[0]);
+    const PropsContext = PropsRegistry.getPropsRegistry()[propsEntry[0]];
 
-    return (
-        <PropsContext.Provider value={propsEntry[1]}>
-            {children}
-        </PropsContext.Provider>
-    );
+    // console.log('propsEntry:', propsEntry);
+    // console.log('PropsContext:', PropsContext);
+    if (PropsContext) {
+        return (
+            <PropsContext.Provider value={propsEntry[1]}>
+                {children}
+            </PropsContext.Provider>
+        );
+    } else {
+        return (
+            <Fragment>
+                {children}
+            </Fragment>
+        );
+    }
 };
 
 // Coordinate all PropsDistributors with layered srtucture:
@@ -51,6 +61,7 @@ const HoistDistributor = (props) => {
 class HoistManager extends React.Component {
     constructor(props) {
         super(props);
+        // console.log('HoistManager constructor');
 
         // Create and register a Hoist Context:
         try {
@@ -100,6 +111,7 @@ class HoistManager extends React.Component {
 
     // Wrap its children with Hoist and Props desitributors:
     render() {
+        // console.log('HoistManager render call.');
         const { pointName, children } = this.props;
     
         return (
@@ -112,18 +124,30 @@ class HoistManager extends React.Component {
     }
 }
 
-export const propsHoist = pointName => WrappedComponent => props => (
-    <HoistManager pointName={pointName}>
-        <WrappedComponent { ...props } />
-    </HoistManager>
-);
-
-export const hoistRegister = pointName => WrappedComponent => props => {
-    const MyContext = HoistRegistry.getHoistContext(pointName);
+export const propsHoist = pointName => WrappedComponent => props => {
+    // console.log('propsHoist function call.');
 
     return (
-        <MyContext.Consumer>
-           {contextProps => (<WrappedComponent { ...contextProps } { ...props } />)}
-        </MyContext.Consumer>
+        <HoistManager pointName={pointName}>
+            <WrappedComponent { ...props } />
+        </HoistManager>
     );
+};
+
+export const hoistRegister = pointName => WrappedComponent => props => {
+    const MyContext = HoistRegistry.getHoistRegistry()[pointName];
+
+    if (MyContext) {
+        return (
+            <MyContext.Consumer>
+               {contextProps => (<WrappedComponent { ...contextProps } { ...props } />)}
+            </MyContext.Consumer>
+        );
+    } else {
+        // This design allows a hoistRegister without the relevant hoist point yet mounted.
+        console.warn(`Hoist Context ${pointName} does not exist.`);
+        return (
+            <WrappedComponent { ...props } />
+        );
+    }
 };

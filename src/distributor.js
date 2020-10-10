@@ -14,6 +14,7 @@ import { unitMapper } from './helpers';
 class PropsRegister extends React.Component {
     constructor(props) {
         super(props);
+        console.log('PropsRegister constructor');
 
         const { propsName, accommodateProps, removeProps, children, ...rest } = props;
 
@@ -21,7 +22,7 @@ class PropsRegister extends React.Component {
         try {
             PropsRegistry.registerProps(propsName, React.createContext({}));
         } catch (e) {
-            throw e;
+            // throw e;
         };
 
         // Request accommodation for named props with its value:
@@ -35,13 +36,25 @@ class PropsRegister extends React.Component {
         removeProps && removeProps(propsName);
 
         // Deregister the previously registered Props Context:
-        PropsRegistry.deregisterProps(propsName);
+        // PropsRegistry.deregisterProps(propsName);
+
+        console.log('PropsRegister componentWillUnmount');
+    }
+
+    componentDidMount() {
+        const { propsName, accommodateProps, removeProps, children, ...rest } = this.props;
+
+        this.propsRefresh && this.propsRefresh(rest)
+
+        console.log('PropsRegister componentDidMount');
     }
 
     componentDidUpdate() {
-        const { propsName, accommodateProps, removeProps, children, ...rest } = props;
+        const { propsName, accommodateProps, removeProps, children, ...rest } = this.props;
 
         this.propsRefresh && this.propsRefresh(rest)
+
+        console.log('PropsRegister componentDidUpdate');
     }
 
     render() {
@@ -49,23 +62,53 @@ class PropsRegister extends React.Component {
     }
 }
 
+class HoistingPropsRegisterHolder extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.Component = hoistRegister(props.pointName)(PropsRegister);
+        console.log('HoistingPropsRegisterHolder constructor.');
+    }
+
+    render() {
+        const HoistingPropsRegister = this.Component;
+        const { pointName, propsName, children, ...rest } = this.props;
+
+        return (
+            <HoistingPropsRegister propsName={propsName} {...rest}>
+                {children}
+            </HoistingPropsRegister>
+        );
+    }
+}
+
 export const propsRegister = (propsName, mapper = unitMapper, pointName) => (WrappedComponent) => (props) => {
-    const { children, ...rest } = props;
-    const HoistingPropsRegister = hoistRegister(pointName)(PropsRegister);
+    // const { children, ...rest } = props;
+    // const HoistingPropsRegister = hoistRegister(pointName)(PropsRegister);
+
+    console.log('propsRegister func component.');
     
     return (
-        <HoistingPropsRegister propsName={propsName} {...mapper(rest)}>
+        <HoistingPropsRegisterHolder pointName={pointName} propsName={propsName} {...mapper(props)}>
             <WrappedComponent {...props} />
-        </HoistingPropsRegister>
+        </HoistingPropsRegisterHolder>
     );
 };
 
 export const propsConnect = (propsName, mapper = unitMapper) => (WrappedComponent) => (props) => {
-    const MyContext = PropsRegistry.getPropsContext(propsName);
+    const MyContext = PropsRegistry.getPropsRegistry()[propsName];
 
-    return (
-        <MyContext.Consumer>
-           {contextProps => (<WrappedComponent { ...mapper(contextProps) } { ...props } />)}
-        </MyContext.Consumer>
-    );
+    if (MyContext) {
+        return (
+            <MyContext.Consumer>
+               {contextProps => (<WrappedComponent { ...mapper(contextProps) } { ...props } />)}
+            </MyContext.Consumer>
+        );
+    } else {
+        // This design allows a propsConnect without the relevant named props yet registered.
+        console.warn(`Props ${propsName} does not yet registered.`);
+        return (
+            <WrappedComponent { ...props } />
+        );
+    }
 };

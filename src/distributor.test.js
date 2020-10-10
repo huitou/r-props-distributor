@@ -8,28 +8,24 @@
 import React from "react";
 import { mount } from "enzyme";
 
+import PropsRegistry from './registry-props';
+import { propsHoist, hoistRegister } from './hoist';
 import { propsRegister, propsConnect } from './distributor';
 
 const HOIST_NAME = 'myHoist';
 const PROPS_NAME = 'myProps';
 const ownProps = { whatever: {} };
 
-// const InsideReceiverPointComponent = () => (<div />);
-// const MyInsideReceiver = propsReceiver(NAME)(InsideReceiverPointComponent);
-// const OutsideReceiverPointComponent = () => (<div />);
-// const MyOutsideReceiver = propsReceiver(NAME)(OutsideReceiverPointComponent);
+const propsMapper_1 = (props) => {
+	const { whatever } = props;
+	return { whatever };
+};
 
-// const DistributorPointComponent = (props) => (
-// 	<div>
-// 		<MyInsideReceiver />
-// 		{props.children}
-// 	</div>
-// );
-// const MyDistributor = propsDistributor(NAME)(DistributorPointComponent);
+const PropsSourceComponent = () => (<div />);
+const hocFunc = propsRegister(PROPS_NAME, propsMapper_1, HOIST_NAME);
+const PropsRegisteringComponent = hocFunc(PropsSourceComponent);
 
-describe("props distributor and receiver", () => {
-	let enzymeWrapper;
-
+describe("propsRegister", () => {
 	beforeEach(() => {
 			
 	});
@@ -37,42 +33,120 @@ describe("props distributor and receiver", () => {
 		
 	});
 
-	describe("test placeholder", () => {
+	describe("when named Hoist Point exists", () => {
+		
+		const ConsumerComponent = () => (<div />);
+		const ConnectingConsumerComponent = (props) => {
+			const MyPropsContext = PropsRegistry.getPropsRegistry()[PROPS_NAME];
+			// console.log('In ConnectingConsumerComponent', MyPropsContext);
+		
+			const MyWrapped = (myProps) => MyPropsContext
+				? (
+					<MyPropsContext.Consumer>
+						{(contextProps) => (<ConsumerComponent {...myProps} {...contextProps} />)}
+					</MyPropsContext.Consumer>
+				)
+				: (<ConsumerComponent {...props} />);
+		
+			return <MyWrapped {...props} />;
+		};
+
+		class WrappedComponent extends React.Component {
+			constructor(props) {
+				super(props);
+				console.log('WrappedComponent constructor');
+
+				this.MyRegisteringComponent = PropsRegisteringComponent;
+			}
+
+			render() {
+				const MyRegisteringComponent = this.MyRegisteringComponent;
+				return (
+					<div>
+						<div><MyRegisteringComponent {...this.props} {...ownProps} /></div>
+						<ConnectingConsumerComponent {...this.props} />
+					</div>
+				);
+			}
+		};
+		const HoistPointComponent = propsHoist(HOIST_NAME)(WrappedComponent);
+		
+
+		let enzymeWrapper;
+	
+		beforeEach(() => {
+			enzymeWrapper = mount(<HoistPointComponent somethingElse={{}} />);
+			// enzymeWrapper = mount(<PropsRegisteringComponent {...ownProps} />);
+		});
+		afterEach(() => {
+			enzymeWrapper.unmount();
+		});
+	
 		it("returns always pass", () => {
+			// enzymeWrapper.update();
+			console.log(enzymeWrapper.debug());
 			expect(true).toBe(true);
 		});
 	});
 
-	// describe("distributor decorating a component", () => {
-	// 	it("passes received props to the wrapped component", () => {
-	// 		enzymeWrapper = mount(<MyDistributor {...ownProps} />);
-	// 		expect(enzymeWrapper.find(DistributorPointComponent).props()).toEqual(ownProps);
+	// describe("when named Hoist Point does not exist", () => {
+	// 	let enzymeWrapper;
+	
+	// 	beforeEach(() => {
+				
 	// 	});
-	// });
-
-	// describe("distributor parenting a component", () => {
-	// 	it("passes received props to the wrapped and parented components", () => {
-	// 		enzymeWrapper = mount(
-	// 			<MyDistributor {...ownProps}>
-	// 				<MyOutsideReceiver />
-	// 			</MyDistributor>
-	// 		);
-
-	// 		const { children, ...rest } = enzymeWrapper.find(DistributorPointComponent).props()
-	// 		expect(rest).toEqual(ownProps);
+	// 	afterEach(() => {
+			
 	// 	});
-	// });
-
-	// describe("receiver, with propsDistributor, decorating a component", () => {
-	// 	it("passes distributed props to the wrapped component", () => {
-	// 		enzymeWrapper = mount(
-	// 			<MyDistributor {...ownProps}>
-	// 				<MyOutsideReceiver />
-	// 			</MyDistributor>
-	// 		);
-
-	// 		expect(enzymeWrapper.find(InsideReceiverPointComponent).props()).toEqual(ownProps);
-	// 		expect(enzymeWrapper.find(OutsideReceiverPointComponent).props()).toEqual(ownProps);
+	
+	// 	it("returns always pass", () => {
+	// 		expect(true).toBe(true);
 	// 	});
 	// });
 });
+
+// describe("propsConnect", () => {
+// 	beforeEach(() => {
+			
+// 	});
+// 	afterEach(() => {
+		
+// 	});
+
+// 	it("returns always pass", () => {
+// 		expect(true).toBe(true);
+// 	});
+// });
+
+// describe("distributor decorating a component", () => {
+// 	it("passes received props to the wrapped component", () => {
+// 		enzymeWrapper = mount(<MyDistributor {...ownProps} />);
+// 		expect(enzymeWrapper.find(DistributorPointComponent).props()).toEqual(ownProps);
+// 	});
+// });
+
+// describe("distributor parenting a component", () => {
+// 	it("passes received props to the wrapped and parented components", () => {
+// 		enzymeWrapper = mount(
+// 			<MyDistributor {...ownProps}>
+// 				<MyOutsideReceiver />
+// 			</MyDistributor>
+// 		);
+
+// 		const { children, ...rest } = enzymeWrapper.find(DistributorPointComponent).props()
+// 		expect(rest).toEqual(ownProps);
+// 	});
+// });
+
+// describe("receiver, with propsDistributor, decorating a component", () => {
+// 	it("passes distributed props to the wrapped component", () => {
+// 		enzymeWrapper = mount(
+// 			<MyDistributor {...ownProps}>
+// 				<MyOutsideReceiver />
+// 			</MyDistributor>
+// 		);
+
+// 		expect(enzymeWrapper.find(InsideReceiverPointComponent).props()).toEqual(ownProps);
+// 		expect(enzymeWrapper.find(OutsideReceiverPointComponent).props()).toEqual(ownProps);
+// 	});
+// });

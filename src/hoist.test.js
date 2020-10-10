@@ -13,6 +13,7 @@ import PropsRegistry from './registry-props';
 import { propsHoist, hoistRegister } from './hoist';
 
 const HOIST_NAME = 'myHoist';
+const HOIST_NAME_2 = 'myHoist_2';
 const PROPS_NAME = 'myProps';
 const PROPS_NAME_2 = 'myProps_2';
 const namedPropsValue = { someName: 'someValue' };
@@ -55,6 +56,9 @@ const WrappedComponent = (props) => (
 	</div>
 );
 const HoistPointComponent = propsHoist(HOIST_NAME)(WrappedComponent);
+
+const SiblingComponent = () => (<div />);
+const RegisteredSiblingComponent = hoistRegister(HOIST_NAME_2)(SiblingComponent);
 
 describe("propsHoist", () => {
 	let enzymeWrapper;
@@ -163,7 +167,12 @@ describe("hoistRegister", () => {
 	let enzymeWrapper;
 
 	beforeEach(() => {
-		enzymeWrapper = mount(<HoistPointComponent {...ownProps} />);
+		enzymeWrapper = mount(
+			<div>
+				<HoistPointComponent {...ownProps} />
+				<RegisteredSiblingComponent />
+			</div>
+		);
 	});
 	afterEach(() => {
 

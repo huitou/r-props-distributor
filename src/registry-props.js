@@ -10,6 +10,8 @@ const propsRegistry = {};
 const getPropsRegistry = () => ({ ...propsRegistry });
 
 const registerProps = (name, Context) => {
+    // console.log('registerProps:', name);
+
     if (propsRegistry[name]) {
         throw new Error(`Props registry has already a React Context registered with the name ${name}`); 
     }
@@ -21,12 +23,13 @@ const registerProps = (name, Context) => {
 };
 
 const deregisterProps = (name) => {
+    console.log('deregisterProps:', name);
     propsRegistry[name] = undefined;
 };
 
 const getPropsContext = (name) => {
     if (!propsRegistry[name]) {
-        throw new Error(`Hoist registry has not a React Context registered with the name ${name}`); 
+        throw new Error(`Props registry has not a React Context registered with the name ${name}`);
     }
 
     return propsRegistry[name];
