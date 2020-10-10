@@ -54,7 +54,7 @@ describe("propsRegister", () => {
 		class WrappedComponent extends React.Component {
 			constructor(props) {
 				super(props);
-				console.log('WrappedComponent constructor');
+				console.log('WrappedComponent constructor call - twice - NOT OK');
 
 				this.MyRegisteringComponent = PropsRegisteringComponent;
 			}
@@ -83,7 +83,8 @@ describe("propsRegister", () => {
 		});
 	
 		it("returns always pass", () => {
-			// enzymeWrapper.update();
+			console.log(enzymeWrapper.debug());
+			enzymeWrapper.update();
 			console.log(enzymeWrapper.debug());
 			expect(true).toBe(true);
 		});

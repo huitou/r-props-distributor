@@ -8,7 +8,7 @@
 import React from "react";
 import { mount } from "enzyme";
 
-describe("HoistingPropsRegisterHolder", () => {
+describe("...", () => {
 	class ComponentInsideFunctional extends React.Component {
 		constructor(props) {
 			super(props);
@@ -33,23 +33,53 @@ describe("HoistingPropsRegisterHolder", () => {
 		}
 
 		render() {
-			return <div />;
+			const { children } = this.props;
+
+			return <div>{children}</div>;
 		}
 	}
 
 	const FunctionalInsideFunctional = (props) => {
 		console.log('FunctionalInsideFunctional call.');
+		const { children, ...rest } = props;
 
-		return (<ComponentInsideFunctional {...props} />);
+		return (<ComponentInsideFunctional {...rest}>{children}</ComponentInsideFunctional>);
 	};
 
 	const Functional = (props) => {
 		console.log('Functional call.');
+		const { children, ...rest } = props;
 
-		return (<FunctionalInsideFunctional {...props} />);
+		return (<FunctionalInsideFunctional {...rest}>{children}</FunctionalInsideFunctional>);
 	};
 
-	class HoistingPropsRegisterHolder extends React.Component {
+	// -----------
+
+	const myHoc_2 = (param) => WrappedComponent => props => {
+		console.log('myHoc_2 with param:', param);
+
+		return (
+			<div><WrappedComponent {...props} /></div>
+		);
+	};
+
+	class HoCedComponent_2 extends React.Component {
+		constructor(props) {
+			super(props);
+
+			console.log('HoCedComponent_2 with props:', props);
+		}
+
+		render() {
+			return <div />;
+		}
+	}
+
+	const Root_2 = myHoc_2('test_2')(HoCedComponent_2);
+
+	// -----------
+
+	class HoCingComponent_1 extends React.Component {
 		constructor(props) {
 			super(props);
 
@@ -61,16 +91,53 @@ describe("HoistingPropsRegisterHolder", () => {
 		};
 
 		render() {
-			return (
-				<Functional {...this.props} setCounter={this.setCounter} />
-			);
+			if (this.state.counter === 0) {
+				return (
+					<Functional {...this.props} setCounter={this.setCounter}>
+						{this.props.children}
+					</Functional>
+				);
+			} else {
+				return (
+					<div>
+						<Functional {...this.props} setCounter={this.setCounter}>
+							{this.props.children}
+						</Functional>
+					</div>
+				);
+			}
 		}
 	}
+
+	const myHoc_1 = param => WrappedComponent => props => {
+		console.log('myHoc_1 with param:', param);
+
+		return (
+			<HoCingComponent_1 {...props}>
+				<WrappedComponent {...props} />
+			</HoCingComponent_1>
+		);
+	};
+
+	class HoCedComponent_1 extends React.Component {
+		constructor(props) {
+			super(props);
+			console.log('HoCedComponent_1 constructor call - only once - OK');
+		}
+
+		render() {
+			return <Root_2 {...this.props} />;
+		}
+	}
+
+	const Root_1 = myHoc_1('test_1')(HoCedComponent_1);
+
+	// -----------
 
 	let enzymeWrapper;
 	
 	beforeEach(() => {
-		enzymeWrapper = mount(<HoistingPropsRegisterHolder something={{}} />);
+		enzymeWrapper = mount(<Root_1 something={{}} />);
 	});
 	afterEach(() => {
 		enzymeWrapper.unmount();

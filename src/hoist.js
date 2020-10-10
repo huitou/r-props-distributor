@@ -125,7 +125,7 @@ class HoistManager extends React.Component {
 }
 
 export const propsHoist = pointName => WrappedComponent => props => {
-    // console.log('propsHoist function call.');
+    console.log('propsHoist function call - only once - OK');
 
     return (
         <HoistManager pointName={pointName}>
