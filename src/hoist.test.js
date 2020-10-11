@@ -11,6 +11,8 @@ import { mount } from "enzyme";
 import HoistRegistry from './registry-hoist';
 import PropsRegistry from './registry-props';
 import { propsHoist, hoistRegister } from './hoist';
+import { propsConnect } from './distributor';
+import { unitMapper } from './helpers';
 
 const HOIST_NAME = 'myHoist';
 const HOIST_NAME_2 = 'myHoist_2';
@@ -23,28 +25,7 @@ const namedPropsValueUpdated_2 = { someOtherName_2: 'someOtherValue_2' };
 const ownProps = { whatever: "whatever" };
 
 const ConsumerComponent = () => (<div />);
-const ConnectingConsumerComponent = (props) => {
-	const MyPropsContext = PropsRegistry.getPropsRegistry()[HOIST_NAME];
-	const MyPropsContext_2 = PropsRegistry.getPropsRegistry()[HOIST_NAME];
-
-	const MyWrapped = (myProps) => MyPropsContext
-		? (
-			<MyPropsContext.Consumer>
-				{(contextProps) => (<ConsumerComponent {...myProps} {...contextProps} />)}
-			</MyPropsContext.Consumer>
-		)
-		: (<ConsumerComponent {...myProps} />);
-
-	const MyWrapped_2 = (myProps) => MyPropsContext_2
-		? (
-			<MyPropsContext_2.Consumer>
-				{(contextProps) => (<MyWrapped {...myProps} {...contextProps} />)}
-			</MyPropsContext_2.Consumer>
-		)
-		: (<MyWrapped />);
-
-	return <MyWrapped_2 {...props} />;
-};
+const ConnectingConsumerComponent = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(propsConnect(PROPS_NAME_2, unitMapper, HOIST_NAME)(ConsumerComponent));
 
 const DescendantComponent = () => (<div />);
 const RegisteredDescendantComponent = hoistRegister(HOIST_NAME)(DescendantComponent);
@@ -104,29 +85,27 @@ describe("propsHoist", () => {
 		const valueRefresher = enzymeWrapper.find('HoistDistributor').props().hoistHandles.accommodateProps(PROPS_NAME, namedPropsValue);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValue } })
 		enzymeWrapper.update();
-		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, [PROPS_NAME]: { ...namedPropsValue } });
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValue });
 
 		valueRefresher(namedPropsValueUpdated);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated } })
 		enzymeWrapper.update();
-		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, [PROPS_NAME]: { ...namedPropsValueUpdated } });
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated });
 
 		const valueRefresher_2 = enzymeWrapper.find('HoistDistributor').props().hoistHandles.accommodateProps(PROPS_NAME_2, namedPropsValue_2);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated, [PROPS_NAME_2]: namedPropsValue_2 } })
 		enzymeWrapper.update();
-		// console.log(enzymeWrapper.debug());
-		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, [PROPS_NAME]: { ...namedPropsValueUpdated }, [PROPS_NAME_2]: { ...namedPropsValue_2 } });
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated, ...namedPropsValue_2 });
 
 		valueRefresher_2(namedPropsValueUpdated_2);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated, [PROPS_NAME_2]: namedPropsValueUpdated_2 } })
 		enzymeWrapper.update();
-		// console.log(enzymeWrapper.debug());
-		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, [PROPS_NAME]: { ...namedPropsValueUpdated }, [PROPS_NAME_2]: { ...namedPropsValueUpdated_2 } });
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated, ...namedPropsValueUpdated_2 });
 
 		enzymeWrapper.find('HoistDistributor').props().hoistHandles.removeProps(PROPS_NAME_2);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated } })
 		enzymeWrapper.update();
-		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, [PROPS_NAME]: { ...namedPropsValueUpdated } });
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated });
 
 		enzymeWrapper.find('HoistDistributor').props().hoistHandles.removeProps(PROPS_NAME);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: undefined } })
@@ -170,18 +149,15 @@ describe("hoistRegister", () => {
 		);
 	});
 	afterEach(() => {
-
+		enzymeWrapper.unmount();
 	});
 
 	it("decorates a wrapped component injecting hoistHandles.", () => {
 		const hoistHandles = enzymeWrapper.find('HoistDistributor').props().hoistHandles;
 		expect(enzymeWrapper.find(DescendantComponent).props()).toEqual({ ...ownProps, ...hoistHandles });
-		enzymeWrapper.unmount();
 	});
 
 	it("....", () => {
 		expect(enzymeWrapper.find(DescendantComponent).length).toBe(1);
-		// expect(enzymeWrapper.find('RegisteredDescendantComponent').length).toBe(1);
-		enzymeWrapper.unmount();
 	});
 });

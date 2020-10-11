@@ -12,53 +12,36 @@ describe("...", () => {
 	class ComponentInsideFunctional extends React.Component {
 		componentDidMount() {
 			const { setCounter } = this.props;
-	
 			setCounter();
-	
-			console.log('ComponentInsideFunctional componentDidMount');
+			// console.log('ComponentInsideFunctional componentDidMount');
 		}
 
 		componentDidUpdate() {
+			// ATTENTION: Infinite loop will be created if setCounter is triggered here:
 			// const { setCounter } = this.props;
-	
 			// setCounter();
-	
-			console.log('ComponentInsideFunctional componentDidUpdate');
+			// console.log('ComponentInsideFunctional componentDidUpdate');
 		}
 
 		render() {
-			const { children } = this.props;
-
-			return <div>{children}</div>;
+			return <div>{this.propschildren}</div>;
 		}
 	}
 
 	const FunctionalInsideFunctional = (props) => {
 		const { children, ...rest } = props;
-
 		return (<ComponentInsideFunctional {...rest}>{children}</ComponentInsideFunctional>);
 	};
 
 	const Functional = (props) => {
 		const { children, ...rest } = props;
-
 		return (<FunctionalInsideFunctional {...rest}>{children}</FunctionalInsideFunctional>);
 	};
 
 	// -----------
 
-	const myHoc_2 = (param) => WrappedComponent => props => {
-		return (
-			<div><WrappedComponent {...props} /></div>
-		);
-	};
-
-	class HoCedComponent_2 extends React.Component {
-		render() {
-			return <div />;
-		}
-	}
-
+	const myHoc_2 = () => WrappedComponent => props => (<div><WrappedComponent {...props} /></div>);
+	const HoCedComponent_2 = () => (<div />);
 	const Root_2 = myHoc_2('test_2')(HoCedComponent_2);
 
 	// -----------
@@ -66,7 +49,6 @@ describe("...", () => {
 	class HoCingComponent_1 extends React.Component {
 		constructor(props) {
 			super(props);
-
 			this.state = { counter: 0 };
 		}
 
@@ -82,21 +64,12 @@ describe("...", () => {
 			);
 		}
 	}
-
-	const myHoc_1 = param => WrappedComponent => props => {
-		return (
-			<HoCingComponent_1 {...props}>
-				<WrappedComponent {...props} />
-			</HoCingComponent_1>
-		);
-	};
-
-	class HoCedComponent_1 extends React.Component {
-		render() {
-			return <Root_2 {...this.props} />;
-		}
-	}
-
+	const myHoc_1 = () => WrappedComponent => props => (
+		<HoCingComponent_1 {...props}>
+			<WrappedComponent {...props} />
+		</HoCingComponent_1>
+	);
+	const HoCedComponent_1 = props => (<Root_2 {...props} />);
 	const Root_1 = myHoc_1('test_1')(HoCedComponent_1);
 
 	// -----------
@@ -111,8 +84,6 @@ describe("...", () => {
 	});
 
 	it("returns always pass", () => {
-		// enzymeWrapper.update();
-		// console.log(enzymeWrapper.debug());
 		expect(true).toBe(true);
 	});
 });
