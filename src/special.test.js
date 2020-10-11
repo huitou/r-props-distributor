@@ -112,7 +112,7 @@ describe("...", () => {
 
 	it("returns always pass", () => {
 		// enzymeWrapper.update();
-		console.log(enzymeWrapper.debug());
+		// console.log(enzymeWrapper.debug());
 		expect(true).toBe(true);
 	});
 });

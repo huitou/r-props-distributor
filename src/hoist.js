@@ -57,12 +57,14 @@ class HoistManager extends React.Component {
         });
     }
 
-    // Hoist Context's value elements:
+    // Accommodate a named props and return a refresh handle:
     accommodateProps = (propsName, value) => {
         this.setProps(propsName)(value);
 
         return this.setProps(propsName);
     };
+
+    // Remove a named props from accommodation:
     removeProps = propsName => {
         this.setState(state => {
             const newAccommodatedProps = { ...state.accommodatedProps };
@@ -71,6 +73,7 @@ class HoistManager extends React.Component {
         });
     };
 
+    // Collect hoist handles for hoist distributor:
     hoistHandles = {
         accommodateProps: this.accommodateProps,
         removeProps: this.removeProps,
@@ -78,7 +81,6 @@ class HoistManager extends React.Component {
 
     // Wrap its children with Hoist and Props desitributors:
     render() {
-        // console.log('HoistManager render call.');
         const { pointName, children } = this.props;
     
         return (
@@ -100,13 +102,13 @@ export const propsHoist = pointName => WrappedComponent => props => {
 };
 
 export const hoistRegister = pointName => WrappedComponent => props => {
-    const MyContext = HoistRegistry.getHoistRegistry()[pointName];
+    const HoistContext = HoistRegistry.getHoistRegistry()[pointName];
 
-    if (MyContext) {
+    if (HoistContext) {
         return (
-            <MyContext.Consumer>
+            <HoistContext.Consumer>
                {contextProps => (<WrappedComponent { ...contextProps } { ...props } />)}
-            </MyContext.Consumer>
+            </HoistContext.Consumer>
         );
     } else {
         // This design allows a hoistRegister without the relevant hoist point yet mounted.

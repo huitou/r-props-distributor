@@ -21,9 +21,6 @@ const propsMapper_1 = (props) => {
 	return { whatever };
 };
 
-const PropsSourceComponent = () => (<div />);
-const PropsRegisteringComponent = propsRegister(PROPS_NAME, propsMapper_1, HOIST_NAME)(PropsSourceComponent);
-
 describe("propsRegister", () => {
 	beforeEach(() => {
 			
@@ -33,42 +30,34 @@ describe("propsRegister", () => {
 	});
 
 	describe("when named Hoist Point exists", () => {
-		
+		const PropsSourceComponent = () => (<div />);
+		const PropsRegisteringComponent = propsRegister(PROPS_NAME, propsMapper_1, HOIST_NAME)(PropsSourceComponent);
+
 		const ConsumerComponent = () => (<div />);
 		const ConnectingConsumerComponent = (props) => {
-			const MyPropsContext = PropsRegistry.getPropsRegistry()[HOIST_NAME];
+			const PropsContext = PropsRegistry.getPropsRegistry()[HOIST_NAME];
 		
-			const MyWrapped = (myProps) => MyPropsContext
+			const MyWrapped = (myProps) => PropsContext
 				? (
-					<MyPropsContext.Consumer>
+					<PropsContext.Consumer>
 						{(contextProps) => {
 							const injectedProps = { [HOIST_NAME]: {...contextProps} };
-							console.log(injectedProps);
+							console.log('InjectedProps to Consumer component:', injectedProps);
 							return (<ConsumerComponent {...myProps} {...injectedProps} />);
 						}}
-					</MyPropsContext.Consumer>
+					</PropsContext.Consumer>
 				)
 				: (<ConsumerComponent {...props} />);
 		
 			return <MyWrapped {...props} />;
 		};
 
-		class WrappedComponent extends React.Component {
-			constructor(props) {
-				super(props);
-				this.MyRegisteringComponent = PropsRegisteringComponent;
-			}
-
-			render() {
-				const MyRegisteringComponent = this.MyRegisteringComponent;
-				return (
-					<div>
-						<div><MyRegisteringComponent {...this.props} {...ownProps} /></div>
-						<div><div><ConnectingConsumerComponent {...this.props} /></div></div>
-					</div>
-				);
-			}
-		};
+		const WrappedComponent = (props) => (
+			<div>
+				<div><PropsRegisteringComponent {...props} {...ownProps} /></div>
+				<div><div><ConnectingConsumerComponent {...props} /></div></div>
+			</div>
+		);
 		const HoistPointComponent = propsHoist(HOIST_NAME)(WrappedComponent);
 		
 

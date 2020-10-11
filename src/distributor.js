@@ -20,18 +20,17 @@ class PropsRegister extends React.Component {
         this.propsRefresh = accommodateProps && accommodateProps(propsName, rest);
     }
 
+    componentDidUpdate() {
+        const { propsName, accommodateProps, removeProps, children, ...rest } = this.props;
+
+        this.propsRefresh && this.propsRefresh(rest)
+    }
+
     componentWillUnmount() {
         const { propsName, removeProps } = this.props;
 
         // Remove the named props from accommodation:
         removeProps && removeProps(propsName);
-    }
-
-    componentDidUpdate() {
-        const { propsName, accommodateProps, removeProps, children, ...rest } = this.props;
-
-        this.propsRefresh && this.propsRefresh(rest)
-        console.log('PropsRegister componentDidUpdate');
     }
 
     render() {
@@ -66,14 +65,14 @@ export const propsRegister = (propsName, mapper = unitMapper, pointName) => (Wra
     );
 };
 
-export const propsConnect = (propsName, mapper = unitMapper) => (WrappedComponent) => (props) => {
-    const MyContext = PropsRegistry.getPropsRegistry()[propsName];
+export const propsConnect = (propsName, mapper = unitMapper, pointName) => (WrappedComponent) => (props) => {
+    const PropsContext = PropsRegistry.getPropsRegistry()[pointName];
 
-    if (MyContext) {
+    if (PropsContext) {
         return (
-            <MyContext.Consumer>
-               {contextProps => (<WrappedComponent { ...mapper(contextProps) } { ...props } />)}
-            </MyContext.Consumer>
+            <PropsContext.Consumer>
+               {contextProps => (<WrappedComponent { ...mapper(contextProps[propsName]) } { ...props } />)}
+            </PropsContext.Consumer>
         );
     } else {
         // This design allows a propsConnect without the relevant named props yet registered.
