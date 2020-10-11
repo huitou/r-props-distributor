@@ -10,12 +10,6 @@ import { mount } from "enzyme";
 
 describe("...", () => {
 	class ComponentInsideFunctional extends React.Component {
-		constructor(props) {
-			super(props);
-
-			console.log('ComponentInsideFunctional with props:', props);
-		}
-
 		componentDidMount() {
 			const { setCounter } = this.props;
 	
@@ -40,14 +34,12 @@ describe("...", () => {
 	}
 
 	const FunctionalInsideFunctional = (props) => {
-		console.log('FunctionalInsideFunctional call.');
 		const { children, ...rest } = props;
 
 		return (<ComponentInsideFunctional {...rest}>{children}</ComponentInsideFunctional>);
 	};
 
 	const Functional = (props) => {
-		console.log('Functional call.');
 		const { children, ...rest } = props;
 
 		return (<FunctionalInsideFunctional {...rest}>{children}</FunctionalInsideFunctional>);
@@ -56,20 +48,12 @@ describe("...", () => {
 	// -----------
 
 	const myHoc_2 = (param) => WrappedComponent => props => {
-		console.log('myHoc_2 with param:', param);
-
 		return (
 			<div><WrappedComponent {...props} /></div>
 		);
 	};
 
 	class HoCedComponent_2 extends React.Component {
-		constructor(props) {
-			super(props);
-
-			console.log('HoCedComponent_2 with props:', props);
-		}
-
 		render() {
 			return <div />;
 		}
@@ -91,27 +75,15 @@ describe("...", () => {
 		};
 
 		render() {
-			if (this.state.counter === 0) {
-				return (
-					<Functional {...this.props} setCounter={this.setCounter}>
-						{this.props.children}
-					</Functional>
-				);
-			} else {
-				return (
-					<div>
-						<Functional {...this.props} setCounter={this.setCounter}>
-							{this.props.children}
-						</Functional>
-					</div>
-				);
-			}
+			return (
+				<Functional {...this.props} setCounter={this.setCounter}>
+					{this.props.children}
+				</Functional>
+			);
 		}
 	}
 
 	const myHoc_1 = param => WrappedComponent => props => {
-		console.log('myHoc_1 with param:', param);
-
 		return (
 			<HoCingComponent_1 {...props}>
 				<WrappedComponent {...props} />
@@ -120,11 +92,6 @@ describe("...", () => {
 	};
 
 	class HoCedComponent_1 extends React.Component {
-		constructor(props) {
-			super(props);
-			console.log('HoCedComponent_1 constructor call - only once - OK');
-		}
-
 		render() {
 			return <Root_2 {...this.props} />;
 		}

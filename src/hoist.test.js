@@ -24,8 +24,8 @@ const ownProps = { whatever: "whatever" };
 
 const ConsumerComponent = () => (<div />);
 const ConnectingConsumerComponent = (props) => {
-	const MyPropsContext = PropsRegistry.getPropsRegistry()[PROPS_NAME];
-	const MyPropsContext_2 = PropsRegistry.getPropsRegistry()[PROPS_NAME_2];
+	const MyPropsContext = PropsRegistry.getPropsRegistry()[HOIST_NAME];
+	const MyPropsContext_2 = PropsRegistry.getPropsRegistry()[HOIST_NAME];
 
 	const MyWrapped = (myProps) => MyPropsContext
 		? (
@@ -33,7 +33,7 @@ const ConnectingConsumerComponent = (props) => {
 				{(contextProps) => (<ConsumerComponent {...myProps} {...contextProps} />)}
 			</MyPropsContext.Consumer>
 		)
-		: (<ConsumerComponent {...props} />);
+		: (<ConsumerComponent {...myProps} />);
 
 	const MyWrapped_2 = (myProps) => MyPropsContext_2
 		? (
@@ -80,11 +80,6 @@ describe("propsHoist", () => {
 		enzymeWrapper.unmount();
 	});
 
-	it("deregisters the named hoist context when unmounted.", () => {
-		enzymeWrapper.unmount();
-		expect(() => HoistRegistry.getHoistContext(HOIST_NAME)).toThrow();
-	});
-
 	// ----------
 
 	it("causes internal HoistManager to initialise its state.", () => {
@@ -109,29 +104,29 @@ describe("propsHoist", () => {
 		const valueRefresher = enzymeWrapper.find('HoistDistributor').props().hoistHandles.accommodateProps(PROPS_NAME, namedPropsValue);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValue } })
 		enzymeWrapper.update();
-		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValue });
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, [PROPS_NAME]: { ...namedPropsValue } });
 
 		valueRefresher(namedPropsValueUpdated);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated } })
 		enzymeWrapper.update();
-		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated });
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, [PROPS_NAME]: { ...namedPropsValueUpdated } });
 
 		const valueRefresher_2 = enzymeWrapper.find('HoistDistributor').props().hoistHandles.accommodateProps(PROPS_NAME_2, namedPropsValue_2);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated, [PROPS_NAME_2]: namedPropsValue_2 } })
 		enzymeWrapper.update();
 		// console.log(enzymeWrapper.debug());
-		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated, ...namedPropsValue_2 });
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, [PROPS_NAME]: { ...namedPropsValueUpdated }, [PROPS_NAME_2]: { ...namedPropsValue_2 } });
 
 		valueRefresher_2(namedPropsValueUpdated_2);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated, [PROPS_NAME_2]: namedPropsValueUpdated_2 } })
 		enzymeWrapper.update();
 		// console.log(enzymeWrapper.debug());
-		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated, ... namedPropsValueUpdated_2 });
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, [PROPS_NAME]: { ...namedPropsValueUpdated }, [PROPS_NAME_2]: { ...namedPropsValueUpdated_2 } });
 
 		enzymeWrapper.find('HoistDistributor').props().hoistHandles.removeProps(PROPS_NAME_2);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated } })
 		enzymeWrapper.update();
-		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated });
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, [PROPS_NAME]: { ...namedPropsValueUpdated } });
 
 		enzymeWrapper.find('HoistDistributor').props().hoistHandles.removeProps(PROPS_NAME);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: undefined } })

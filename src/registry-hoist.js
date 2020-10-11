@@ -11,7 +11,7 @@ const getHoistRegistry = () => ({ ...hoistRegistry });
 
 const registerHoist = (name, Context) => {
     if (hoistRegistry[name]) {
-        throw new Error(`Context registry has already a React Context registered with the name ${name}`); 
+        // console.warn(`Context registry has already a React Context registered with the name ${name}`); 
     }
 
     const [first, ...rest] = name;

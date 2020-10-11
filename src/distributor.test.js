@@ -22,8 +22,7 @@ const propsMapper_1 = (props) => {
 };
 
 const PropsSourceComponent = () => (<div />);
-const hocFunc = propsRegister(PROPS_NAME, propsMapper_1, HOIST_NAME);
-const PropsRegisteringComponent = hocFunc(PropsSourceComponent);
+const PropsRegisteringComponent = propsRegister(PROPS_NAME, propsMapper_1, HOIST_NAME)(PropsSourceComponent);
 
 describe("propsRegister", () => {
 	beforeEach(() => {
@@ -37,13 +36,16 @@ describe("propsRegister", () => {
 		
 		const ConsumerComponent = () => (<div />);
 		const ConnectingConsumerComponent = (props) => {
-			const MyPropsContext = PropsRegistry.getPropsRegistry()[PROPS_NAME];
-			// console.log('In ConnectingConsumerComponent', MyPropsContext);
+			const MyPropsContext = PropsRegistry.getPropsRegistry()[HOIST_NAME];
 		
 			const MyWrapped = (myProps) => MyPropsContext
 				? (
 					<MyPropsContext.Consumer>
-						{(contextProps) => (<ConsumerComponent {...myProps} {...contextProps} />)}
+						{(contextProps) => {
+							const injectedProps = { [HOIST_NAME]: {...contextProps} };
+							console.log(injectedProps);
+							return (<ConsumerComponent {...myProps} {...injectedProps} />);
+						}}
 					</MyPropsContext.Consumer>
 				)
 				: (<ConsumerComponent {...props} />);
@@ -54,8 +56,6 @@ describe("propsRegister", () => {
 		class WrappedComponent extends React.Component {
 			constructor(props) {
 				super(props);
-				console.log('WrappedComponent constructor call - twice - NOT OK');
-
 				this.MyRegisteringComponent = PropsRegisteringComponent;
 			}
 
@@ -64,7 +64,7 @@ describe("propsRegister", () => {
 				return (
 					<div>
 						<div><MyRegisteringComponent {...this.props} {...ownProps} /></div>
-						<ConnectingConsumerComponent {...this.props} />
+						<div><div><ConnectingConsumerComponent {...this.props} /></div></div>
 					</div>
 				);
 			}
@@ -76,14 +76,12 @@ describe("propsRegister", () => {
 	
 		beforeEach(() => {
 			enzymeWrapper = mount(<HoistPointComponent somethingElse={{}} />);
-			// enzymeWrapper = mount(<PropsRegisteringComponent {...ownProps} />);
 		});
 		afterEach(() => {
 			enzymeWrapper.unmount();
 		});
 	
 		it("returns always pass", () => {
-			console.log(enzymeWrapper.debug());
 			enzymeWrapper.update();
 			console.log(enzymeWrapper.debug());
 			expect(true).toBe(true);
