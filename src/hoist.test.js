@@ -98,8 +98,8 @@ describe("propsHoist", () => {
 		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual(ownProps);
 
 		// The following lines are to simulate registering named props contexts.
-		PropsRegistry.registerProps(PROPS_NAME, React.createContext({}));
-		PropsRegistry.registerProps(PROPS_NAME_2, React.createContext({}));
+		PropsRegistry.registerProps(PROPS_NAME);
+		PropsRegistry.registerProps(PROPS_NAME_2);
 
 		const valueRefresher = enzymeWrapper.find('HoistDistributor').props().hoistHandles.accommodateProps(PROPS_NAME, namedPropsValue);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValue } })

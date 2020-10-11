@@ -39,8 +39,8 @@ class HoistManager extends React.Component {
         super(props);
 
         // Create and register a Hoist Context:
-        HoistRegistry.registerHoist(this.props.pointName, React.createContext({}));
-        PropsRegistry.registerProps(this.props.pointName, React.createContext({}));
+        HoistRegistry.registerHoist(this.props.pointName);
+        PropsRegistry.registerProps(this.props.pointName);
 
         // Initialise a props accommodation for this hoist point:
         this.state = {
