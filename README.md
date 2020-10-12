@@ -20,42 +20,37 @@ To make props passing easier through composition.
 
 ```javascript
 import {
-    propsDistributor,
-    propsReceiver,
+    propsHoist,
+    propsRegister,
+    propsConnect,
 } from 'r-props-distributor';
 ```
 
 ### Use HoCs to distribute props
 
 ```javascript
-    const ParentComponent = (props) => (<div>{props.children}</div>);
-    const ChildComponent = (props) => (<div>...</div>);
+    const HoistPointComponent = (props) => (<div>{props.children}</div>);
+    const PropsPointComponent = (props) => (<div />);
+    const PropsConnectComponent = (props) => (<div />);
 
-    // Give a unique name to the distributor:
-    const ditributorName = 'myDistributor';
-    // Give a mapper function to select the props to be distributed:
-    const myMapper = (props) => {
-        const { prop1, prop2 } = props;
-        return { prop1, prop2 };
-    };
+    const HOIST_NAME = 'myHoist';
+    const PROPS_NAME = 'myProps';
+    const hoistMapper = (props) => ({ prop1: props.prop1, prop2: props.prop2 });
+    const connectMapper = (props) => ({ prop3: props.prop1, prop4: props.prop2 });
 
-    // Decorate the parent component:
-    const DistributorPointComponent = propsDistributor(ditributorName, myMapper)(ParentComponent);
-    // Decorate the child components:
-    const ReceiverPointComponent = propsReceiver(ditributorName)(ChildComponent);
+    const HoCedHoistPointComponent = propsHoist(HOIST_NAME)(HoistPointComponent);
+    const HoCedPropsPointComponent = propsRegister(PROPS_NAME, hoistMapper, HOIST_NAME)(PropsPointComponent);
+    const HoCedPropsConnectComponent = propsConnect(PROPS_NAME, connectMapper, HOIST_NAME)(PropsConnectComponent);
 
-    // Use decorated parent and child components together:
-    const ComponentUsingPropsDist = (props) => (
-        <DistributorPointComponent>
-            <div>
-                <ReceiverPointComponent />
-            </div>
-            <ReceiverPointComponent />
-        </DistributorPointComponent>
+    const TreeWithPropsDistributor = (props) => (
+        <HoCedHoistPointComponent>
+            <div><HoCedPropsPointComponent {...{ prop1: 'abc', prop2: 123, propN: 'whatever' }}/></div>
+            <HoCedPropsConnectComponent />
+        </HoCedHoistPointComponent>
     );
 ```
 
-In this example both ReceiverPointComponent instances receive prop1 and prop2.
+In this example <PropsConnectComponent> instances receives { prop3: 'abc', prop4: 123 }, that is, a selected part of props on <HoCedPropsPointComponent> is hoisted to <HoCedHoistPointComponent> and then distributed to <HoCedPropsConnectComponent> with desired renaming.
 
 ## Dependnecy:
 
