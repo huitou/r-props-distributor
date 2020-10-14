@@ -25,18 +25,18 @@ const namedPropsValueUpdated_2 = { someOtherName_2: 'someOtherValue_2' };
 const ownProps = { whatever: "whatever" };
 
 const ConsumerComponent = () => (<div />);
-const ConnectingConsumerComponent = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(propsConnect(PROPS_NAME_2, unitMapper, HOIST_NAME)(ConsumerComponent));
+const HoCedConsumerComponent = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(propsConnect(PROPS_NAME_2, unitMapper, HOIST_NAME)(ConsumerComponent));
 
-const DescendantComponent = () => (<div />);
-const RegisteredDescendantComponent = hoistRegister(HOIST_NAME)(DescendantComponent);
+const RegisterPointComponent = () => (<div />);
+const HoCedRegisterPointComponent = hoistRegister(HOIST_NAME)(RegisterPointComponent);
 
-const WrappedComponent = (props) => (
+const HoistPointComponent = (props) => (
 	<div>
-		<RegisteredDescendantComponent {...props} />
-		<div><ConnectingConsumerComponent {...props} /></div>
+		<HoCedRegisterPointComponent {...props} />
+		<div><HoCedConsumerComponent {...props} /></div>
 	</div>
 );
-const HoistPointComponent = propsHoist(HOIST_NAME)(WrappedComponent);
+const HoCedHoistPointComponent = propsHoist(HOIST_NAME)(HoistPointComponent);
 
 const SiblingComponent = () => (<div />);
 const RegisteredSiblingComponent = hoistRegister(HOIST_NAME_2)(SiblingComponent);
@@ -45,14 +45,14 @@ describe("propsHoist", () => {
 	let enzymeWrapper;
 
 	beforeEach(() => {
-		enzymeWrapper = mount(<HoistPointComponent {...ownProps} />);
+		enzymeWrapper = mount(<HoCedHoistPointComponent {...ownProps} />);
 	});
 	afterEach(() => {
 		
 	});
 
 	it("decorates a wrapped component without changing its props.", () => {
-		expect(enzymeWrapper.find(WrappedComponent).props()).toEqual(ownProps);
+		expect(enzymeWrapper.find(HoistPointComponent).props()).toEqual(ownProps);
 		enzymeWrapper.unmount();
 	});
 
@@ -128,7 +128,7 @@ describe("propsHoist", () => {
 	});
 
 	it("....", () => {
-		expect(enzymeWrapper.find(WrappedComponent).length).toBe(1);
+		expect(enzymeWrapper.find(HoistPointComponent).length).toBe(1);
 		expect(enzymeWrapper.find('HoistManager').length).toBe(1);
 		expect(enzymeWrapper.find('HoistDistributor').length).toBe(1);
 		expect(enzymeWrapper.find('PropsDistributors').length).toBe(1);
@@ -143,7 +143,7 @@ describe("hoistRegister", () => {
 	beforeEach(() => {
 		enzymeWrapper = mount(
 			<div>
-				<HoistPointComponent {...ownProps} />
+				<HoCedHoistPointComponent {...ownProps} />
 				<RegisteredSiblingComponent />
 			</div>
 		);
@@ -154,10 +154,10 @@ describe("hoistRegister", () => {
 
 	it("decorates a wrapped component injecting hoistHandles.", () => {
 		const hoistHandles = enzymeWrapper.find('HoistDistributor').props().hoistHandles;
-		expect(enzymeWrapper.find(DescendantComponent).props()).toEqual({ ...ownProps, ...hoistHandles });
+		expect(enzymeWrapper.find(RegisterPointComponent).props()).toEqual({ ...ownProps, ...hoistHandles });
 	});
 
 	it("....", () => {
-		expect(enzymeWrapper.find(DescendantComponent).length).toBe(1);
+		expect(enzymeWrapper.find(RegisterPointComponent).length).toBe(1);
 	});
 });

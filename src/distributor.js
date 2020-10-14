@@ -6,6 +6,7 @@
     Licensed under the MIT License. See LICENSE file in the project root for full license information.
 */
 import React, { Fragment } from 'react';
+import { equals } from 'ramda';
 
 import PropsRegistry from './registry-props';
 import { hoistRegister } from './hoist';
@@ -14,16 +15,18 @@ import { unitMapper } from './helpers';
 class PropsRegister extends React.Component {
     constructor(props) {
         super(props);
-        const { propsName, accommodateProps, removeProps, children, ...rest } = props;
+        const { propsName, accommodateProps, removeProps, children, propsValue, ...rest } = props;
 
         // Request accommodation for named props with its value:
-        this.propsRefresh = accommodateProps && accommodateProps(propsName, rest);
+        this.propsRefresh = accommodateProps && accommodateProps(propsName, propsValue);
     }
 
-    componentDidUpdate() {
-        const { propsName, accommodateProps, removeProps, children, ...rest } = this.props;
+    componentDidUpdate(prevProps) {
+        const { propsValue } = this.props;
 
-        this.propsRefresh && this.propsRefresh(rest)
+        if (!equals(propsValue, prevProps.propsValue)) {
+            this.propsRefresh && this.propsRefresh(rest);
+        }
     }
 
     componentWillUnmount() {
@@ -47,10 +50,10 @@ class HoistingPropsRegisterHolder extends React.Component {
 
     render() {
         const HoistingPropsRegister = this.Component;
-        const { pointName, propsName, children, ...rest } = this.props;
+        const { propsName, children, propsValue } = this.props;
 
         return (
-            <HoistingPropsRegister propsName={propsName} {...rest}>
+            <HoistingPropsRegister propsName={propsName} propsValue={propsValue}>
                 {children}
             </HoistingPropsRegister>
         );
@@ -59,7 +62,7 @@ class HoistingPropsRegisterHolder extends React.Component {
 
 export const propsRegister = (propsName, mapper = unitMapper, pointName) => (WrappedComponent) => (props) => {
     return (
-        <HoistingPropsRegisterHolder pointName={pointName} propsName={propsName} {...mapper(props)}>
+        <HoistingPropsRegisterHolder pointName={pointName} propsName={propsName} propsValue={mapper(props)}>
             <WrappedComponent {...props} />
         </HoistingPropsRegisterHolder>
     );
