@@ -24,6 +24,7 @@ class PropsRegister extends React.Component {
     componentDidUpdate(prevProps) {
         const { propsValue } = this.props;
 
+        // console.log(propsValue, prevProps.propsValue);
         if (!equals(propsValue, prevProps.propsValue)) {
             this.propsRefresh && this.propsRefresh(rest);
         }
