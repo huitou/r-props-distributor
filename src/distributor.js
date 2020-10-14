@@ -15,7 +15,7 @@ import { unitMapper } from './helpers';
 class PropsRegister extends React.Component {
     constructor(props) {
         super(props);
-        const { propsName, accommodateProps, removeProps, children, propsValue, ...rest } = props;
+        const { propsName, propsValue, accommodateProps } = props;
 
         // Request accommodation for named props with its value:
         this.propsRefresh = accommodateProps && accommodateProps(propsName, propsValue);
