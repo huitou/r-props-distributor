@@ -34,7 +34,7 @@ const HoCedConsumerComponent_1 = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME
 const RegisterPointComponent_1 = () => (<div><HoCedConsumerComponent_1 /></div>);
 const HoCedRegisterPointComponent_1 = propsRegister(PROPS_NAME, registerMapper, HOIST_NAME)(RegisterPointComponent_1);
 
-const HoistPointComponent_1 = (props) => (
+const HoistPointComponent_1 = props => (
 	<div>
 		<HoCedRegisterPointComponent_1 {...props} {...namedPropsValue} />
 		<HoCedConsumerComponent_1 />
@@ -50,12 +50,16 @@ const HoCedRegisterPointComponent_2 = propsRegister(PROPS_NAME, registerMapper, 
 const ConsumerComponent_2 = () => (<div><HoCedRegisterPointComponent_2 {...namedPropsValue} /></div>);
 const HoCedConsumerComponent_2 = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(ConsumerComponent_2);
 
-const HoistPointComponent_2 = () => (
-	<div>
-		<HoCedConsumerComponent_2 />
-	</div>
-);
+const HoistPointComponent_2 = () => (<div><HoCedConsumerComponent_2 /></div>);
 const HoCedHoistPointComponent_2 = propsHoist(HOIST_NAME)(HoistPointComponent_2);
+
+// --------
+
+const ConsumerComponent_3 = () => (<div><HoCedConsumerComponent_2 /></div>);
+const HoCedConsumerComponent_3 = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(ConsumerComponent_3);
+
+const HoistPointComponent_3 = () => (<div><HoCedConsumerComponent_3 /></div>);
+const HoCedHoistPointComponent_3 = propsHoist(HOIST_NAME)(HoistPointComponent_3);
 
 // --------
 
@@ -71,11 +75,13 @@ describe("When there are not any propsConnect between a propsHoist and a propsRe
 
 	it("does not cause any loop at all.", () => {
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: { ...namedPropsValue } } });
-		console.log(enzymeWrapper.debug());
+		expect(enzymeWrapper.find(ConsumerComponent_1).at(0).props()).toEqual(namedPropsValue);
+		expect(enzymeWrapper.find(ConsumerComponent_1).at(1).props()).toEqual(namedPropsValue);
+		// console.log(enzymeWrapper.debug());
 	});
 });
 
-describe("When there is apropsConnect between a propsHoist and a propsRegister", () => {
+describe("When there is a propsConnect between a propsHoist and a propsRegister", () => {
 	let enzymeWrapper;
 
 	beforeEach(() => {
@@ -85,8 +91,27 @@ describe("When there is apropsConnect between a propsHoist and a propsRegister",
 		enzymeWrapper.unmount();
 	});
 
-	it("causes a loop which is blocked by ....", () => {
+	it("causes a loop which is blocked by check based on Ramda's equals().", () => {
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: { ...namedPropsValue } } });
-		console.log(enzymeWrapper.debug());
+		expect(enzymeWrapper.find(ConsumerComponent_2).props()).toEqual(namedPropsValue);
+		// console.log(enzymeWrapper.debug());
+	});
+});
+
+describe("When there are more propsConnects between a propsHoist and a propsRegister", () => {
+	let enzymeWrapper;
+
+	beforeEach(() => {
+		enzymeWrapper = mount(<HoCedHoistPointComponent_3 {...ownProps} />);
+	});
+	afterEach(() => {
+		enzymeWrapper.unmount();
+	});
+
+	it("causes more loops which are blocked by check based on Ramda's equals().", () => {
+		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: { ...namedPropsValue } } });
+		expect(enzymeWrapper.find(ConsumerComponent_2).props()).toEqual(namedPropsValue);
+		expect(enzymeWrapper.find(ConsumerComponent_3).props()).toEqual(namedPropsValue);
+		// console.log(enzymeWrapper.debug());
 	});
 });
