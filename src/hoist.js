@@ -11,7 +11,7 @@ import HoistRegistry from './registry-hoist';
 import PropsRegistry from './registry-props';
 
 // Distribute all named propses through a props context:
-const PropsDistributors = (props) => {
+const PropsDistributors = props => {
     const { pointName, accommodatedProps, children } = props;
     const PropsContext = PropsRegistry.getPropsRegistry()[pointName];
 
@@ -23,7 +23,7 @@ const PropsDistributors = (props) => {
 };
 
 // Distribute Hoist Context's value (hoistHanldes):
-const HoistDistributor = (props) => {
+const HoistDistributor = props => {
     const { pointName, hoistHandles, children } = props;
     const HoistContext = HoistRegistry.getHoistContext(pointName);
 
@@ -93,13 +93,11 @@ class HoistManager extends React.Component {
     }
 }
 
-export const propsHoist = pointName => WrappedComponent => props => {
-    return (
-        <HoistManager pointName={pointName}>
-            <WrappedComponent { ...props } />
-        </HoistManager>
-    );
-};
+export const propsHoist = pointName => WrappedComponent => props => (
+    <HoistManager pointName={pointName}>
+        <WrappedComponent { ...props } />
+    </HoistManager>
+);
 
 export const hoistRegister = pointName => WrappedComponent => props => {
     const HoistContext = HoistRegistry.getHoistRegistry()[pointName];

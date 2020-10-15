@@ -13,27 +13,23 @@ import { hoistRegister } from './hoist';
 import { unitMapper } from './helpers';
 
 class PropsRegister extends React.Component {
-    constructor(props) {
-        super(props);
-        const { propsName, propsValue, accommodateProps } = props;
-
+    componentDidMount() {
         // Request accommodation for named props with its value:
+        const { propsName, propsValue, accommodateProps } = this.props;
         this.propsRefresh = accommodateProps && accommodateProps(propsName, propsValue);
     }
 
     componentDidUpdate(prevProps) {
+        // Update accommodated propsValue:
         const { propsValue } = this.props;
-
-        // console.log(propsValue, prevProps.propsValue);
         if (!equals(propsValue, prevProps.propsValue)) {
             this.propsRefresh && this.propsRefresh(rest);
         }
     }
 
     componentWillUnmount() {
-        const { propsName, removeProps } = this.props;
-
         // Remove the named props from accommodation:
+        const { propsName, removeProps } = this.props;
         removeProps && removeProps(propsName);
     }
 
@@ -61,15 +57,13 @@ class HoistingPropsRegisterHolder extends React.Component {
     }
 }
 
-export const propsRegister = (propsName, mapper = unitMapper, pointName) => (WrappedComponent) => (props) => {
-    return (
-        <HoistingPropsRegisterHolder pointName={pointName} propsName={propsName} propsValue={mapper(props)}>
-            <WrappedComponent {...props} />
-        </HoistingPropsRegisterHolder>
-    );
-};
+export const propsRegister = (propsName, mapper = unitMapper, pointName) => WrappedComponent => props => (
+    <HoistingPropsRegisterHolder pointName={pointName} propsName={propsName} propsValue={mapper(props)}>
+        <WrappedComponent {...props} />
+    </HoistingPropsRegisterHolder>
+);
 
-export const propsConnect = (propsName, mapper = unitMapper, pointName) => (WrappedComponent) => (props) => {
+export const propsConnect = (propsName, mapper = unitMapper, pointName) => WrappedComponent => props => {
     const PropsContext = PropsRegistry.getPropsRegistry()[pointName];
 
     if (PropsContext) {
