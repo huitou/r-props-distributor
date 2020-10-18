@@ -9,7 +9,7 @@ import React, { Fragment } from 'react';
 import { equals } from 'ramda';
 
 import PropsRegistry from './registry-props';
-import { hoistRegister } from './hoist';
+import { rootHoistName, hoistRegister } from './hoist';
 import { unitMapper } from './helpers';
 
 class PropsRegister extends React.Component {
@@ -42,7 +42,7 @@ class HoistingPropsRegisterHolder extends React.Component {
     constructor(props) {
         super(props);
 
-        this.Component = hoistRegister(props.pointName)(PropsRegister);
+        this.Component = hoistRegister(props.hoistName)(PropsRegister);
     }
 
     render() {
@@ -57,14 +57,14 @@ class HoistingPropsRegisterHolder extends React.Component {
     }
 }
 
-export const propsRegister = (propsName, mapper = unitMapper, pointName) => WrappedComponent => props => (
-    <HoistingPropsRegisterHolder pointName={pointName} propsName={propsName} propsValue={mapper(props)}>
+export const propsRegister = (propsName, mapper = unitMapper, hoistName = rootHoistName) => WrappedComponent => props => (
+    <HoistingPropsRegisterHolder hoistName={hoistName} propsName={propsName} propsValue={mapper(props)}>
         <WrappedComponent {...props} />
     </HoistingPropsRegisterHolder>
 );
 
-export const propsConnect = (propsName, mapper = unitMapper, pointName) => WrappedComponent => props => {
-    const PropsContext = PropsRegistry.getPropsRegistry()[pointName];
+export const propsConnect = (propsName, mapper = unitMapper, hoistName = rootHoistName) => WrappedComponent => props => {
+    const PropsContext = PropsRegistry.getPropsRegistry()[hoistName];
 
     if (PropsContext) {
         return (

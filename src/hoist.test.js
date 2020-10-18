@@ -69,7 +69,7 @@ describe("propsHoist", () => {
 	});
 
 	it("causes internal HoistManager to pass props to internal HoistDistributor.", () => {
-		expect(enzymeWrapper.find('HoistDistributor').props().pointName).toBe(HOIST_NAME);
+		expect(enzymeWrapper.find('HoistDistributor').props().hoistName).toBe(HOIST_NAME);
 		expect(enzymeWrapper.find('HoistDistributor').props().hoistHandles).toBeDefined();
 		expect(enzymeWrapper.find('HoistDistributor').props().children).toBeDefined();
 		enzymeWrapper.unmount();

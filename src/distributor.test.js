@@ -11,7 +11,7 @@ import { mount } from "enzyme";
 import HoistRegistry from './registry-hoist';
 import PropsRegistry from './registry-props';
 
-import { propsHoist, hoistRegister } from './hoist';
+import { propsHoist } from './hoist';
 import { propsRegister, propsConnect } from './distributor';
 import { unitMapper } from './helpers';
 

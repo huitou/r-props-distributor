@@ -5,15 +5,17 @@
 
     Licensed under the MIT License. See LICENSE file in the project root for full license information.
 */
-import React, { Fragment } from 'react';
+import React from 'react';
 
 import HoistRegistry from './registry-hoist';
 import PropsRegistry from './registry-props';
 
+export const rootHoistName = '_root_'
+
 // Distribute all named propses through a props context:
 const PropsDistributors = props => {
-    const { pointName, accommodatedProps, children } = props;
-    const PropsContext = PropsRegistry.getPropsRegistry()[pointName];
+    const { hoistName, accommodatedProps, children } = props;
+    const PropsContext = PropsRegistry.getPropsRegistry()[hoistName];
 
     return (
         <PropsContext.Provider value={{ ...accommodatedProps }}>
@@ -24,8 +26,8 @@ const PropsDistributors = props => {
 
 // Distribute Hoist Context's value (hoistHanldes):
 const HoistDistributor = props => {
-    const { pointName, hoistHandles, children } = props;
-    const HoistContext = HoistRegistry.getHoistContext(pointName);
+    const { hoistName, hoistHandles, children } = props;
+    const HoistContext = HoistRegistry.getHoistContext(hoistName);
 
     return (
         <HoistContext.Provider value={hoistHandles}>
@@ -39,8 +41,8 @@ class HoistManager extends React.Component {
         super(props);
 
         // Create and register a Hoist Context:
-        HoistRegistry.registerHoist(this.props.pointName);
-        PropsRegistry.registerProps(this.props.pointName);
+        HoistRegistry.registerHoist(this.props.hoistName);
+        PropsRegistry.registerProps(this.props.hoistName);
 
         // Initialise a props accommodation for this hoist point:
         this.state = {
@@ -81,11 +83,11 @@ class HoistManager extends React.Component {
 
     // Wrap its children with Hoist and Props desitributors:
     render() {
-        const { pointName, children } = this.props;
+        const { hoistName, children } = this.props;
     
         return (
-            <HoistDistributor pointName={pointName} hoistHandles={this.hoistHandles}>
-                <PropsDistributors pointName={pointName} accommodatedProps={this.state.accommodatedProps}>
+            <HoistDistributor hoistName={hoistName} hoistHandles={this.hoistHandles}>
+                <PropsDistributors hoistName={hoistName} accommodatedProps={this.state.accommodatedProps}>
                     {children}
                 </PropsDistributors>
             </HoistDistributor>
@@ -93,14 +95,14 @@ class HoistManager extends React.Component {
     }
 }
 
-export const propsHoist = pointName => WrappedComponent => props => (
-    <HoistManager pointName={pointName}>
+export const propsHoist = (hoistName = rootHoistName) => WrappedComponent => props => (
+    <HoistManager hoistName={hoistName}>
         <WrappedComponent { ...props } />
     </HoistManager>
 );
 
-export const hoistRegister = pointName => WrappedComponent => props => {
-    const HoistContext = HoistRegistry.getHoistRegistry()[pointName];
+export const hoistRegister = (hoistName = rootHoistName) => WrappedComponent => props => {
+    const HoistContext = HoistRegistry.getHoistRegistry()[hoistName];
 
     if (HoistContext) {
         return (
@@ -110,7 +112,7 @@ export const hoistRegister = pointName => WrappedComponent => props => {
         );
     } else {
         // This design allows a hoistRegister without the relevant hoist point yet mounted.
-        // console.warn(`Hoist Context ${pointName} does not exist.`);
+        // console.warn(`Hoist Context ${hoistName} does not exist.`);
         return (
             <WrappedComponent { ...props } />
         );
