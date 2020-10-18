@@ -5,17 +5,19 @@
 
     Licensed under the MIT License. See LICENSE file in the project root for full license information.
 */
+import React from 'react';
+
 const propsRegistry = {};
 
 const getPropsRegistry = () => ({ ...propsRegistry });
 
-const registerProps = (name, Context) => {
-    // console.log('registerProps:', name);
-
+const registerProps = (name) => {
     if (propsRegistry[name]) {
-        throw new Error(`Props registry has already a React Context registered with the name ${name}`); 
+        // console.warn(`Props registry has already a React Context registered with the name ${name}`); 
+        return;
     }
 
+    const Context = React.createContext({});
     const [first, ...rest] = name;
     const displayName = [ first.toUpperCase(), ...rest ].join('');
     Context.displayName = displayName;
@@ -23,7 +25,6 @@ const registerProps = (name, Context) => {
 };
 
 const deregisterProps = (name) => {
-    console.log('deregisterProps:', name);
     propsRegistry[name] = undefined;
 };
 

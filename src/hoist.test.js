@@ -11,6 +11,8 @@ import { mount } from "enzyme";
 import HoistRegistry from './registry-hoist';
 import PropsRegistry from './registry-props';
 import { propsHoist, hoistRegister } from './hoist';
+import { propsConnect } from './distributor';
+import { unitMapper } from './helpers';
 
 const HOIST_NAME = 'myHoist';
 const HOIST_NAME_2 = 'myHoist_2';
@@ -23,39 +25,18 @@ const namedPropsValueUpdated_2 = { someOtherName_2: 'someOtherValue_2' };
 const ownProps = { whatever: "whatever" };
 
 const ConsumerComponent = () => (<div />);
-const ConnectingConsumerComponent = (props) => {
-	const MyPropsContext = PropsRegistry.getPropsRegistry()[PROPS_NAME];
-	const MyPropsContext_2 = PropsRegistry.getPropsRegistry()[PROPS_NAME_2];
+const HoCedConsumerComponent = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(propsConnect(PROPS_NAME_2, unitMapper, HOIST_NAME)(ConsumerComponent));
 
-	const MyWrapped = (myProps) => MyPropsContext
-		? (
-			<MyPropsContext.Consumer>
-				{(contextProps) => (<ConsumerComponent {...myProps} {...contextProps} />)}
-			</MyPropsContext.Consumer>
-		)
-		: (<ConsumerComponent {...props} />);
+const RegisterPointComponent = () => (<div />);
+const HoCedRegisterPointComponent = hoistRegister(HOIST_NAME)(RegisterPointComponent);
 
-	const MyWrapped_2 = (myProps) => MyPropsContext_2
-		? (
-			<MyPropsContext_2.Consumer>
-				{(contextProps) => (<MyWrapped {...myProps} {...contextProps} />)}
-			</MyPropsContext_2.Consumer>
-		)
-		: (<MyWrapped />);
-
-	return <MyWrapped_2 {...props} />;
-};
-
-const DescendantComponent = () => (<div />);
-const RegisteredDescendantComponent = hoistRegister(HOIST_NAME)(DescendantComponent);
-
-const WrappedComponent = (props) => (
+const HoistPointComponent = (props) => (
 	<div>
-		<RegisteredDescendantComponent {...props} />
-		<div><ConnectingConsumerComponent {...props} /></div>
+		<HoCedRegisterPointComponent {...props} />
+		<div><HoCedConsumerComponent {...props} /></div>
 	</div>
 );
-const HoistPointComponent = propsHoist(HOIST_NAME)(WrappedComponent);
+const HoCedHoistPointComponent = propsHoist(HOIST_NAME)(HoistPointComponent);
 
 const SiblingComponent = () => (<div />);
 const RegisteredSiblingComponent = hoistRegister(HOIST_NAME_2)(SiblingComponent);
@@ -64,25 +45,20 @@ describe("propsHoist", () => {
 	let enzymeWrapper;
 
 	beforeEach(() => {
-		enzymeWrapper = mount(<HoistPointComponent {...ownProps} />);
+		enzymeWrapper = mount(<HoCedHoistPointComponent {...ownProps} />);
 	});
 	afterEach(() => {
 		
 	});
 
 	it("decorates a wrapped component without changing its props.", () => {
-		expect(enzymeWrapper.find(WrappedComponent).props()).toEqual(ownProps);
+		expect(enzymeWrapper.find(HoistPointComponent).props()).toEqual(ownProps);
 		enzymeWrapper.unmount();
 	});
 
 	it("creates and registers a correctly named hoist context.", () => {
 		expect(() => HoistRegistry.getHoistContext(HOIST_NAME)).not.toThrow();
 		enzymeWrapper.unmount();
-	});
-
-	it("deregisters the named hoist context when unmounted.", () => {
-		enzymeWrapper.unmount();
-		expect(() => HoistRegistry.getHoistContext(HOIST_NAME)).toThrow();
 	});
 
 	// ----------
@@ -93,7 +69,7 @@ describe("propsHoist", () => {
 	});
 
 	it("causes internal HoistManager to pass props to internal HoistDistributor.", () => {
-		expect(enzymeWrapper.find('HoistDistributor').props().pointName).toBe(HOIST_NAME);
+		expect(enzymeWrapper.find('HoistDistributor').props().hoistName).toBe(HOIST_NAME);
 		expect(enzymeWrapper.find('HoistDistributor').props().hoistHandles).toBeDefined();
 		expect(enzymeWrapper.find('HoistDistributor').props().children).toBeDefined();
 		enzymeWrapper.unmount();
@@ -103,8 +79,8 @@ describe("propsHoist", () => {
 		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual(ownProps);
 
 		// The following lines are to simulate registering named props contexts.
-		PropsRegistry.registerProps(PROPS_NAME, React.createContext({}));
-		PropsRegistry.registerProps(PROPS_NAME_2, React.createContext({}));
+		PropsRegistry.registerProps(PROPS_NAME);
+		PropsRegistry.registerProps(PROPS_NAME_2);
 
 		const valueRefresher = enzymeWrapper.find('HoistDistributor').props().hoistHandles.accommodateProps(PROPS_NAME, namedPropsValue);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValue } })
@@ -119,14 +95,12 @@ describe("propsHoist", () => {
 		const valueRefresher_2 = enzymeWrapper.find('HoistDistributor').props().hoistHandles.accommodateProps(PROPS_NAME_2, namedPropsValue_2);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated, [PROPS_NAME_2]: namedPropsValue_2 } })
 		enzymeWrapper.update();
-		// console.log(enzymeWrapper.debug());
 		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated, ...namedPropsValue_2 });
 
 		valueRefresher_2(namedPropsValueUpdated_2);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated, [PROPS_NAME_2]: namedPropsValueUpdated_2 } })
 		enzymeWrapper.update();
-		// console.log(enzymeWrapper.debug());
-		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated, ... namedPropsValueUpdated_2 });
+		expect(enzymeWrapper.find(ConsumerComponent).props()).toEqual({ ...ownProps, ...namedPropsValueUpdated, ...namedPropsValueUpdated_2 });
 
 		enzymeWrapper.find('HoistDistributor').props().hoistHandles.removeProps(PROPS_NAME_2);
 		expect(enzymeWrapper.find('HoistManager').state()).toEqual({ accommodatedProps: { [PROPS_NAME]: namedPropsValueUpdated } })
@@ -154,7 +128,7 @@ describe("propsHoist", () => {
 	});
 
 	it("....", () => {
-		expect(enzymeWrapper.find(WrappedComponent).length).toBe(1);
+		expect(enzymeWrapper.find(HoistPointComponent).length).toBe(1);
 		expect(enzymeWrapper.find('HoistManager').length).toBe(1);
 		expect(enzymeWrapper.find('HoistDistributor').length).toBe(1);
 		expect(enzymeWrapper.find('PropsDistributors').length).toBe(1);
@@ -169,24 +143,21 @@ describe("hoistRegister", () => {
 	beforeEach(() => {
 		enzymeWrapper = mount(
 			<div>
-				<HoistPointComponent {...ownProps} />
+				<HoCedHoistPointComponent {...ownProps} />
 				<RegisteredSiblingComponent />
 			</div>
 		);
 	});
 	afterEach(() => {
-
+		enzymeWrapper.unmount();
 	});
 
 	it("decorates a wrapped component injecting hoistHandles.", () => {
 		const hoistHandles = enzymeWrapper.find('HoistDistributor').props().hoistHandles;
-		expect(enzymeWrapper.find(DescendantComponent).props()).toEqual({ ...ownProps, ...hoistHandles });
-		enzymeWrapper.unmount();
+		expect(enzymeWrapper.find(RegisterPointComponent).props()).toEqual({ ...ownProps, ...hoistHandles });
 	});
 
 	it("....", () => {
-		expect(enzymeWrapper.find(DescendantComponent).length).toBe(1);
-		// expect(enzymeWrapper.find('RegisteredDescendantComponent').length).toBe(1);
-		enzymeWrapper.unmount();
+		expect(enzymeWrapper.find(RegisterPointComponent).length).toBe(1);
 	});
 });

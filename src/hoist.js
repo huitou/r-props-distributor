@@ -5,51 +5,29 @@
 
     Licensed under the MIT License. See LICENSE file in the project root for full license information.
 */
-import React, { Fragment } from 'react';
+import React from 'react';
 
 import HoistRegistry from './registry-hoist';
 import PropsRegistry from './registry-props';
 
-// Distribute props through a named Props Context:
-const PropsDistributor = (props) => {
-    const { propsEntry, children } = props;
-    const PropsContext = PropsRegistry.getPropsRegistry()[propsEntry[0]];
+export const rootHoistName = '_root_'
 
-    // console.log('propsEntry:', propsEntry);
-    // console.log('PropsContext:', PropsContext);
-    if (PropsContext) {
-        return (
-            <PropsContext.Provider value={propsEntry[1]}>
-                {children}
-            </PropsContext.Provider>
-        );
-    } else {
-        return (
-            <Fragment>
-                {children}
-            </Fragment>
-        );
-    }
-};
-
-// Coordinate all PropsDistributors with layered srtucture:
-const PropsDistributors = (props) => {
-    const { accommodatedProps, children } = props;
-    const nodes = Object.entries(accommodatedProps).filter(entry => entry[1]).reduce((acc, entry) => (
-        <PropsDistributor propsEntry={entry}>{acc}</PropsDistributor>
-    ), <Fragment>{children}</Fragment>);
+// Distribute all named propses through a props context:
+const PropsDistributors = props => {
+    const { hoistName, accommodatedProps, children } = props;
+    const PropsContext = PropsRegistry.getPropsRegistry()[hoistName];
 
     return (
-        <Fragment>
-            {nodes}
-        </Fragment>
+        <PropsContext.Provider value={{ ...accommodatedProps }}>
+            {children}
+        </PropsContext.Provider>
     );
 };
 
 // Distribute Hoist Context's value (hoistHanldes):
-const HoistDistributor = (props) => {
-    const { pointName, hoistHandles, children } = props;
-    const HoistContext = HoistRegistry.getHoistContext(pointName);
+const HoistDistributor = props => {
+    const { hoistName, hoistHandles, children } = props;
+    const HoistContext = HoistRegistry.getHoistContext(hoistName);
 
     return (
         <HoistContext.Provider value={hoistHandles}>
@@ -61,24 +39,15 @@ const HoistDistributor = (props) => {
 class HoistManager extends React.Component {
     constructor(props) {
         super(props);
-        // console.log('HoistManager constructor');
 
         // Create and register a Hoist Context:
-        try {
-            HoistRegistry.registerHoist(this.props.pointName, React.createContext({}));
-        } catch (e) {
-            throw e;
-        };
+        HoistRegistry.registerHoist(this.props.hoistName);
+        PropsRegistry.registerProps(this.props.hoistName);
 
         // Initialise a props accommodation for this hoist point:
         this.state = {
             accommodatedProps: {},
         };
-    }
-
-    componentWillUnmount() {
-        // Deregister the previously registered Hoist Context:
-        HoistRegistry.deregisterHoist(this.props.pointName);
     }
 
     // Internal help function:
@@ -90,12 +59,14 @@ class HoistManager extends React.Component {
         });
     }
 
-    // Hoist Context's value elements:
+    // Accommodate a named props and return a refresh handle:
     accommodateProps = (propsName, value) => {
         this.setProps(propsName)(value);
 
         return this.setProps(propsName);
     };
+
+    // Remove a named props from accommodation:
     removeProps = propsName => {
         this.setState(state => {
             const newAccommodatedProps = { ...state.accommodatedProps };
@@ -104,6 +75,7 @@ class HoistManager extends React.Component {
         });
     };
 
+    // Collect hoist handles for hoist distributor:
     hoistHandles = {
         accommodateProps: this.accommodateProps,
         removeProps: this.removeProps,
@@ -111,12 +83,11 @@ class HoistManager extends React.Component {
 
     // Wrap its children with Hoist and Props desitributors:
     render() {
-        // console.log('HoistManager render call.');
-        const { pointName, children } = this.props;
+        const { hoistName, children } = this.props;
     
         return (
-            <HoistDistributor pointName={pointName} hoistHandles={this.hoistHandles}>
-                <PropsDistributors accommodatedProps={this.state.accommodatedProps}>
+            <HoistDistributor hoistName={hoistName} hoistHandles={this.hoistHandles}>
+                <PropsDistributors hoistName={hoistName} accommodatedProps={this.state.accommodatedProps}>
                     {children}
                 </PropsDistributors>
             </HoistDistributor>
@@ -124,28 +95,24 @@ class HoistManager extends React.Component {
     }
 }
 
-export const propsHoist = pointName => WrappedComponent => props => {
-    console.log('propsHoist function call - only once - OK');
+export const propsHoist = (hoistName = rootHoistName) => WrappedComponent => props => (
+    <HoistManager hoistName={hoistName}>
+        <WrappedComponent { ...props } />
+    </HoistManager>
+);
 
-    return (
-        <HoistManager pointName={pointName}>
-            <WrappedComponent { ...props } />
-        </HoistManager>
-    );
-};
+export const hoistRegister = (hoistName = rootHoistName) => WrappedComponent => props => {
+    const HoistContext = HoistRegistry.getHoistRegistry()[hoistName];
 
-export const hoistRegister = pointName => WrappedComponent => props => {
-    const MyContext = HoistRegistry.getHoistRegistry()[pointName];
-
-    if (MyContext) {
+    if (HoistContext) {
         return (
-            <MyContext.Consumer>
+            <HoistContext.Consumer>
                {contextProps => (<WrappedComponent { ...contextProps } { ...props } />)}
-            </MyContext.Consumer>
+            </HoistContext.Consumer>
         );
     } else {
         // This design allows a hoistRegister without the relevant hoist point yet mounted.
-        console.warn(`Hoist Context ${pointName} does not exist.`);
+        // console.warn(`Hoist Context ${hoistName} does not exist.`);
         return (
             <WrappedComponent { ...props } />
         );
