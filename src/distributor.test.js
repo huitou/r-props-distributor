@@ -12,7 +12,7 @@ import HoistRegistry from './registry-hoist';
 import PropsRegistry from './registry-props';
 
 import { propsHoist } from './hoist';
-import { propsRegister, propsConnect } from './distributor';
+import { PropsCollect, propsConnect } from './distributor';
 import { unitMapper } from './helpers';
 
 
@@ -26,9 +26,9 @@ const propsMapper_1 = (props) => {
 	return { whatever };
 };
 
-describe("propsRegister", () => {
+describe("PropsCollect", () => {
 	const PropsSourceComponent = () => (<div />);
-	const PropsRegisteringComponent = propsRegister(PROPS_NAME, propsMapper_1, HOIST_NAME)(PropsSourceComponent);
+	const PropsRegisteringComponent = PropsCollect(PROPS_NAME, propsMapper_1, HOIST_NAME)(PropsSourceComponent);
 
 	const ConsumerComponent = () => (<div />);
 	const ConnectingConsumerComponent = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(ConsumerComponent);

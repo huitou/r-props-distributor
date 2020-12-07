@@ -41,8 +41,8 @@ describe("...", () => {
 	// -----------
 
 	const myHoc_2 = () => WrappedComponent => props => (<div><WrappedComponent {...props} /></div>);
-	const HoCedComponent_2 = () => (<div />);
-	const Root_2 = myHoc_2('test_2')(HoCedComponent_2);
+	const WrppdComponent_2 = () => (<div />);
+	const Root_2 = myHoc_2('test_2')(WrppdComponent_2);
 
 	// -----------
 
@@ -69,8 +69,8 @@ describe("...", () => {
 			<WrappedComponent {...props} />
 		</HoCingComponent_1>
 	);
-	const HoCedComponent_1 = props => (<Root_2 {...props} />);
-	const Root_1 = myHoc_1('test_1')(HoCedComponent_1);
+	const WrppdComponent_1 = props => (<Root_2 {...props} />);
+	const Root_1 = myHoc_1('test_1')(WrppdComponent_1);
 
 	// -----------
 

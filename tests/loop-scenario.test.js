@@ -11,7 +11,7 @@ import { mount } from "enzyme";
 // import HoistRegistry from '../src/registry-hoist';
 // import PropsRegistry from '../src/registry-props';
 import { propsHoist } from '../src/hoist';
-import { propsConnect, propsRegister } from '../src/distributor';
+import { propsConnect, PropsCollect } from '../src/distributor';
 import { unitMapper } from '../src/helpers';
 
 const HOIST_NAME = 'myHoist';
@@ -29,45 +29,45 @@ const registerMapper = props => ({ someName: props.someName });
 // ---------
 
 const ConsumerComponent_1 = () => (<div />);
-const HoCedConsumerComponent_1 = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(ConsumerComponent_1);
+const WrppdConsumerComponent_1 = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(ConsumerComponent_1);
 
-const RegisterPointComponent_1 = () => (<div><HoCedConsumerComponent_1 /></div>);
-const HoCedRegisterPointComponent_1 = propsRegister(PROPS_NAME, registerMapper, HOIST_NAME)(RegisterPointComponent_1);
+const RegisterPointComponent_1 = () => (<div><WrppdConsumerComponent_1 /></div>);
+const WrppdRegisterPointComponent_1 = PropsCollect(PROPS_NAME, registerMapper, HOIST_NAME)(RegisterPointComponent_1);
 
 const HoistPointComponent_1 = props => (
 	<div>
-		<HoCedRegisterPointComponent_1 {...props} {...namedPropsValue} />
-		<HoCedConsumerComponent_1 />
+		<WrppdRegisterPointComponent_1 {...props} {...namedPropsValue} />
+		<WrppdConsumerComponent_1 />
 	</div>
 );
-const HoCedHoistPointComponent_1 = propsHoist(HOIST_NAME)(HoistPointComponent_1);
+const WrppdHoistPointComponent_1 = propsHoist(HOIST_NAME)(HoistPointComponent_1);
 
 // --------
 
 const RegisterPointComponent_2 = () => (<div />);
-const HoCedRegisterPointComponent_2 = propsRegister(PROPS_NAME, registerMapper, HOIST_NAME)(RegisterPointComponent_2);
+const WrppdRegisterPointComponent_2 = PropsCollect(PROPS_NAME, registerMapper, HOIST_NAME)(RegisterPointComponent_2);
 
-const ConsumerComponent_2 = () => (<div><HoCedRegisterPointComponent_2 {...namedPropsValue} /></div>);
-const HoCedConsumerComponent_2 = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(ConsumerComponent_2);
+const ConsumerComponent_2 = () => (<div><WrppdRegisterPointComponent_2 {...namedPropsValue} /></div>);
+const WrppdConsumerComponent_2 = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(ConsumerComponent_2);
 
-const HoistPointComponent_2 = () => (<div><HoCedConsumerComponent_2 /></div>);
-const HoCedHoistPointComponent_2 = propsHoist(HOIST_NAME)(HoistPointComponent_2);
-
-// --------
-
-const ConsumerComponent_3 = () => (<div><HoCedConsumerComponent_2 /></div>);
-const HoCedConsumerComponent_3 = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(ConsumerComponent_3);
-
-const HoistPointComponent_3 = () => (<div><HoCedConsumerComponent_3 /></div>);
-const HoCedHoistPointComponent_3 = propsHoist(HOIST_NAME)(HoistPointComponent_3);
+const HoistPointComponent_2 = () => (<div><WrppdConsumerComponent_2 /></div>);
+const WrppdHoistPointComponent_2 = propsHoist(HOIST_NAME)(HoistPointComponent_2);
 
 // --------
 
-describe("When there are not any propsConnect between a propsHoist and a propsRegister", () => {
+const ConsumerComponent_3 = () => (<div><WrppdConsumerComponent_2 /></div>);
+const WrppdConsumerComponent_3 = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(ConsumerComponent_3);
+
+const HoistPointComponent_3 = () => (<div><WrppdConsumerComponent_3 /></div>);
+const WrppdHoistPointComponent_3 = propsHoist(HOIST_NAME)(HoistPointComponent_3);
+
+// --------
+
+describe("When there are not any propsConnect between a propsHoist and a PropsCollect", () => {
 	let enzymeWrapper;
 
 	beforeEach(() => {
-		enzymeWrapper = mount(<HoCedHoistPointComponent_1 {...ownProps} />);
+		enzymeWrapper = mount(<WrppdHoistPointComponent_1 {...ownProps} />);
 	});
 	afterEach(() => {
 		enzymeWrapper.unmount();
@@ -81,11 +81,11 @@ describe("When there are not any propsConnect between a propsHoist and a propsRe
 	});
 });
 
-describe("When there is a propsConnect between a propsHoist and a propsRegister", () => {
+describe("When there is a propsConnect between a propsHoist and a PropsCollect", () => {
 	let enzymeWrapper;
 
 	beforeEach(() => {
-		enzymeWrapper = mount(<HoCedHoistPointComponent_2 {...ownProps} />);
+		enzymeWrapper = mount(<WrppdHoistPointComponent_2 {...ownProps} />);
 	});
 	afterEach(() => {
 		enzymeWrapper.unmount();
@@ -98,11 +98,11 @@ describe("When there is a propsConnect between a propsHoist and a propsRegister"
 	});
 });
 
-describe("When there are more propsConnects between a propsHoist and a propsRegister", () => {
+describe("When there are more propsConnects between a propsHoist and a PropsCollect", () => {
 	let enzymeWrapper;
 
 	beforeEach(() => {
-		enzymeWrapper = mount(<HoCedHoistPointComponent_3 {...ownProps} />);
+		enzymeWrapper = mount(<WrppdHoistPointComponent_3 {...ownProps} />);
 	});
 	afterEach(() => {
 		enzymeWrapper.unmount();
