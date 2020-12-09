@@ -25,18 +25,18 @@ const namedPropsValueUpdated_2 = { someOtherName_2: 'someOtherValue_2' };
 const ownProps = { whatever: "whatever" };
 
 const ConsumerComponent = () => (<div />);
-const HoCedConsumerComponent = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(propsConnect(PROPS_NAME_2, unitMapper, HOIST_NAME)(ConsumerComponent));
+const WrppdConsumerComponent = propsConnect(PROPS_NAME, unitMapper, HOIST_NAME)(propsConnect(PROPS_NAME_2, unitMapper, HOIST_NAME)(ConsumerComponent));
 
 const RegisterPointComponent = () => (<div />);
-const HoCedRegisterPointComponent = hoistRegister(HOIST_NAME)(RegisterPointComponent);
+const WrppdRegisterPointComponent = hoistRegister(HOIST_NAME)(RegisterPointComponent);
 
 const HoistPointComponent = (props) => (
 	<div>
-		<HoCedRegisterPointComponent {...props} />
-		<div><HoCedConsumerComponent {...props} /></div>
+		<WrppdRegisterPointComponent {...props} />
+		<div><WrppdConsumerComponent {...props} /></div>
 	</div>
 );
-const HoCedHoistPointComponent = propsHoist(HOIST_NAME)(HoistPointComponent);
+const WrppdHoistPointComponent = propsHoist(HOIST_NAME)(HoistPointComponent);
 
 const SiblingComponent = () => (<div />);
 const RegisteredSiblingComponent = hoistRegister(HOIST_NAME_2)(SiblingComponent);
@@ -45,7 +45,7 @@ describe("propsHoist", () => {
 	let enzymeWrapper;
 
 	beforeEach(() => {
-		enzymeWrapper = mount(<HoCedHoistPointComponent {...ownProps} />);
+		enzymeWrapper = mount(<WrppdHoistPointComponent {...ownProps} />);
 	});
 	afterEach(() => {
 		
@@ -143,7 +143,7 @@ describe("hoistRegister", () => {
 	beforeEach(() => {
 		enzymeWrapper = mount(
 			<div>
-				<HoCedHoistPointComponent {...ownProps} />
+				<WrppdHoistPointComponent {...ownProps} />
 				<RegisteredSiblingComponent />
 			</div>
 		);

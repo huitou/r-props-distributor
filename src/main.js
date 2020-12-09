@@ -7,10 +7,10 @@
 */
 
 import { propsHoist } from './hoist';
-import { propsRegister, propsConnect } from './distributor';
+import { PropsCollect, propsConnect } from './distributor';
 
 export {
     propsHoist,
-    propsRegister,
+    PropsCollect,
     propsConnect,
 };

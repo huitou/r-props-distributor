@@ -57,7 +57,7 @@ class HoistingPropsRegisterHolder extends React.Component {
     }
 }
 
-export const propsRegister = (propsName, mapper = unitMapper, hoistName = rootHoistName) => WrappedComponent => props => (
+export const PropsCollect = (propsName, mapper = unitMapper, hoistName = rootHoistName) => WrappedComponent => props => (
     <HoistingPropsRegisterHolder hoistName={hoistName} propsName={propsName} propsValue={mapper(props)}>
         <WrappedComponent {...props} />
     </HoistingPropsRegisterHolder>
